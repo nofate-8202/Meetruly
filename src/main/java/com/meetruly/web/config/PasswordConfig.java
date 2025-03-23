@@ -1,4 +1,4 @@
-package com.meetruly.core.config;
+package com.meetruly.web.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
