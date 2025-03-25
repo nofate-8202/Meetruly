@@ -15,7 +15,6 @@ import com.meetruly.user.repository.UserSessionRepository;
 import com.meetruly.user.repository.VerificationTokenRepository;
 import com.meetruly.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,10 +28,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,7 +43,9 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
-    @Autowired
+
+
+
     public UserServiceImpl(UserRepository userRepository, UserProfileRepository profileRepository, VerificationTokenRepository tokenRepository, UserSessionRepository sessionRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
@@ -56,6 +54,7 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
     }
+
 
     private void ensureFirstUserIsApproved(User user) {
 
@@ -75,8 +74,8 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        if (!user.isApproved()) {
-            throw new UsernameNotFoundException("User account is not approved yet.");
+        if (!user.isEnabled()) {
+            throw new UsernameNotFoundException("User account is disabled.");
         }
 
         if (!user.isEmailVerified() && user.getRole() != UserRole.ADMIN) {
@@ -117,6 +116,7 @@ public class UserServiceImpl implements UserService {
             throw new MeetrulyException("Passwords do not match!");
         }
 
+
         boolean isFirst = userRepository.count() == 0;
         log.info("Registering new user: {}. Is first user: {}", registrationDto.getUsername(), isFirst);
 
@@ -125,11 +125,14 @@ public class UserServiceImpl implements UserService {
                 .email(registrationDto.getEmail())
                 .password(passwordEncoder.encode(registrationDto.getPassword()))
                 .gender(registrationDto.getGender())
+
                 .role(isFirst ? UserRole.ADMIN : UserRole.USER)
                 .enabled(true)
                 .accountNonLocked(true)
+
                 .emailVerified(isFirst)
                 .profileCompleted(false)
+
                 .approved(isFirst)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -161,11 +164,12 @@ public class UserServiceImpl implements UserService {
         return !userRepository.existsByRole(UserRole.ADMIN);
     }
 
-    // Създаване на токен за верификация на имейл
     @Override
     @Transactional
     public void createEmailVerificationToken(User user) {
+
         deleteExistingVerificationTokens(user);
+
         createNewVerificationToken(user);
     }
 
@@ -203,7 +207,6 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new MeetrulyException("User not found with email: " + email));
 
-
         if (user.isEmailVerified()) {
             throw new MeetrulyException("Email is already verified");
         }
@@ -214,6 +217,13 @@ public class UserServiceImpl implements UserService {
             log.error("Failed to resend verification email", e);
             throw new MeetrulyException("Failed to resend verification email");
         }
+    }
+
+    @Override
+    public boolean isUserApproved(String username) {
+        return userRepository.findByUsername(username)
+                .map(User::isApproved)
+                .orElse(false);
     }
 
     @Override
@@ -242,6 +252,7 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteVerificationTokenInNewTransaction(UUID tokenId) {
         try {
@@ -269,7 +280,7 @@ public class UserServiceImpl implements UserService {
                 .token(token)
                 .user(user)
                 .createdAt(LocalDateTime.now())
-                .expiryDate(LocalDateTime.now().plusHours(1)) // Токенът за парола изтича след 1 час
+                .expiryDate(LocalDateTime.now().plusHours(1))
                 .tokenType(VerificationToken.TokenType.PASSWORD_RESET)
                 .build();
 
@@ -306,7 +317,6 @@ public class UserServiceImpl implements UserService {
         VerificationToken resetToken = tokenRepository.findByToken(resetRequest.getToken())
                 .orElseThrow(() -> new MeetrulyException("Invalid reset token"));
 
-
         if (resetToken.isExpired()) {
             tokenRepository.delete(resetToken);
             throw new MeetrulyException("Token has expired");
@@ -336,7 +346,6 @@ public class UserServiceImpl implements UserService {
             throw new MeetrulyException("Current password is incorrect");
         }
 
-
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
@@ -348,7 +357,6 @@ public class UserServiceImpl implements UserService {
     public UserProfile createOrUpdateProfile(UUID userId, UserProfileDto profileDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new MeetrulyException("User not found with id: " + userId));
-
 
         UserProfile profile = profileRepository.findByUserId(userId).orElse(null);
 
@@ -381,7 +389,6 @@ public class UserServiceImpl implements UserService {
         }
 
         profile.setUpdatedAt(LocalDateTime.now());
-
 
         UserProfile savedProfile = profileRepository.save(profile);
 
@@ -419,10 +426,8 @@ public class UserServiceImpl implements UserService {
                 Sort.by(Sort.Direction.DESC, "updatedAt")
         );
 
-
         int minAge = searchRequest.getMinAge() != null ? searchRequest.getMinAge() : 18;
         int maxAge = searchRequest.getMaxAge() != null ? searchRequest.getMaxAge() : 120;
-
 
         Page<UserProfile> profilesPage;
 
@@ -443,10 +448,9 @@ public class UserServiceImpl implements UserService {
             );
         }
 
-
         List<UserProfile> filteredProfiles = profilesPage.getContent().stream()
                 .filter(profile -> isProfileMatchingCriteria(profile, searchRequest))
-                .collect(Collectors.toList());
+                .toList();
 
         List<ProfileCardDto> profileDtos = filteredProfiles.stream()
                 .map(this::convertProfileToCardDto)  // Използваме новия метод
@@ -465,7 +469,6 @@ public class UserServiceImpl implements UserService {
         dto.setUsername(profile.getUser().getUsername());
         dto.setGender(profile.getUser().getGender());
 
-
         dto.setAge(profile.getAge());
         dto.setProfileImageUrl(profile.getProfileImageUrl());
 
@@ -479,6 +482,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private boolean isProfileMatchingCriteria(UserProfile profile, SearchProfileRequest request) {
+
 
         if (!profile.getUser().isApproved() || !profile.getUser().isEnabled() || !profile.getUser().isProfileCompleted()) {
             return false;
@@ -530,11 +534,7 @@ public class UserServiceImpl implements UserService {
             return false;
         }
 
-        if (request.getCity() != null && profile.getCity() != request.getCity()) {
-            return false;
-        }
-
-        return true;
+        return request.getCity() == null || profile.getCity() == request.getCity();
     }
 
     @Override
@@ -575,8 +575,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new MeetrulyException("User not found with id: " + id));
 
         tokenRepository.deleteByUser(user);
+
         sessionRepository.deleteByUser(user);
+
         profileRepository.findByUserId(id).ifPresent(profileRepository::delete);
+
         userRepository.delete(user);
     }
 
@@ -588,6 +591,7 @@ public class UserServiceImpl implements UserService {
 
         user.setApproved(true);
         user.setUpdatedAt(LocalDateTime.now());
+
         userRepository.save(user);
     }
 
@@ -688,9 +692,9 @@ public class UserServiceImpl implements UserService {
         sessionRepository.saveAll(activeSessions);
     }
 
-
     @Override
     public boolean canSendMessage(UUID userId) {
+
 
         return true;
     }
@@ -698,11 +702,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean canViewFullProfile(UUID userId) {
 
+
         return true;
     }
 
     @Override
     public boolean hasReachedProfileViewLimit(UUID userId) {
+
 
         return false;
     }

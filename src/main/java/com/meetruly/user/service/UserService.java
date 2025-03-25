@@ -15,15 +15,17 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserService extends UserDetailsService {
-    
+
     User registerUser(UserRegistrationDto registrationDto);
-    
+
     boolean verifyEmail(String token);
 
     void createEmailVerificationToken(User user);
 
     void resendVerificationEmail(String email);
-    
+
+    boolean isUserApproved(String username);
+
     void initiatePasswordReset(String email);
 
     boolean validatePasswordResetToken(String token);
@@ -31,15 +33,15 @@ public interface UserService extends UserDetailsService {
     void resetPassword(PasswordResetConfirmRequest resetRequest);
 
     void changePassword(UUID userId, String oldPassword, String newPassword);
-    
+
     UserProfile createOrUpdateProfile(UUID userId, UserProfileDto profileDto);
 
     Optional<UserProfileDto> getUserProfile(UUID userId);
 
     List<ProfileCardDto> getUserProfiles(Gender gender, Pageable pageable);
-    
+
     SearchProfileResponse searchProfiles(SearchProfileRequest searchRequest);
-    
+
     User getUserById(UUID id);
 
     Optional<User> getUserByUsername(String username);
@@ -59,7 +61,7 @@ public interface UserService extends UserDetailsService {
     void updateUserRole(UUID id, UserRole newRole);
 
     boolean isFirstUser();
-    
+
     UserSession createUserSession(User user, String sessionId, String ipAddress, String userAgent);
 
     Optional<UserSession> getUserSession(String sessionId);
@@ -69,7 +71,7 @@ public interface UserService extends UserDetailsService {
     void invalidateUserSession(String sessionId);
 
     void invalidateAllUserSessions(UUID userId);
-    
+
     boolean canSendMessage(UUID userId);
 
     boolean canViewFullProfile(UUID userId);
@@ -79,7 +81,7 @@ public interface UserService extends UserDetailsService {
     void incrementMessageCount(UUID userId);
 
     void incrementProfileViewCount(UUID userId);
-    
+
     List<UserResponseDto> getUnapprovedUsers();
 
     long countUsersByRole(UserRole role);

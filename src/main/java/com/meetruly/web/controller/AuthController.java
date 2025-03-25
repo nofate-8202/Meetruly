@@ -72,6 +72,34 @@ public class AuthController {
             return "auth/register";
         }
     }
+    @GetMapping("/pending-approval")
+    public String showPendingApprovalPage(Principal principal, RedirectAttributes redirectAttributes) {
+
+        if (principal == null) {
+            return "redirect:/auth/login";
+        }
+
+        try {
+
+            String username = principal.getName();
+            User user = userService.getUserByUsername(username)
+                    .orElseThrow(() -> new MeetrulyException("User not found: " + username));
+
+            if (user.isApproved()) {
+                return "redirect:/";
+            }
+
+            if (!user.isEmailVerified()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Please verify your email first");
+                return "redirect:/auth/verify-email";
+            }
+
+            return "auth/pending-approval";
+        } catch (MeetrulyException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/auth/login";
+        }
+    }
 
     @GetMapping("/login")
     public String showLoginForm() {
@@ -85,6 +113,9 @@ public class AuthController {
             String username = principal.getName();
             User user = userService.getUserByUsername(username)
                     .orElseThrow(() -> new MeetrulyException("User not found: " + username));
+            if (!user.isApproved() && user.isEmailVerified()) {
+                return "redirect:/auth/pending-approval";
+            }
 
             if (user.getRole().name().equals("ADMIN")) {
                 return "redirect:/admin/dashboard";
