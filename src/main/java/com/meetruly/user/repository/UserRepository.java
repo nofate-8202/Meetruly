@@ -64,6 +64,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Page<User> findByApprovedAndProfileCompleted(boolean approved, boolean profileCompleted, Pageable pageable);
 
+    @Query("SELECT u FROM User u WHERE u.approved = false ORDER BY u.createdAt DESC")
+    Page<User> findPendingApprovalUsers(Pageable pageable);
+
 
 
 }

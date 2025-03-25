@@ -406,7 +406,6 @@ public class UserServiceImpl implements UserService {
                 .stream()
                 .filter(User::isApproved)
                 .filter(User::isEnabled)
-                .filter(User::isProfileCompleted)
                 .map(this::convertToProfileCardDto)
                 .collect(Collectors.toList());
     }

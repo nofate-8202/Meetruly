@@ -113,14 +113,14 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<UserDto> getPendingApprovalUsers() {
-        return userRepository.findByApprovedAndProfileCompleted(false, true).stream()
+        return userRepository.findByApproved(false).stream()
                 .map(this::convertToUserDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Page<UserDto> getPendingApprovalUsers(Pageable pageable) {
-        return userRepository.findByApprovedAndProfileCompleted(false, true, pageable)
+        return userRepository.findPendingApprovalUsers(pageable)
                 .map(this::convertToUserDto);
     }
 
