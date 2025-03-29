@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Home')}">
+    <title>Home - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Home', ~{::section})}" class="home-page">
+    <section>
+        
+        
+        <div class="hero bg-gradient-primary text-white py-5" sec:authorize="!isAuthenticated()">
+            <div class="container py-5">
+                <div class="row align-items-center py-5">
+                    <div class="col-lg-6 text-center text-lg-start mb-5 mb-lg-0">
+                        <h1 class="display-4 fw-bold">Find Your Perfect Match</h1>
+                        <p class="lead mb-4">Meetruly helps you discover meaningful connections with like-minded people who share your interests and values.</p>
+                        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center justify-content-lg-start">
+                            <a th:href="@{/auth/register}" class="btn btn-light btn-lg px-4 py-2">Get Started</a>
+                            <a th:href="@{/subscription/plans}" class="btn btn-outline-light btn-lg px-4 py-2">View Plans</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <img th:src="@{/images/hero-illustration1.svg}" alt="Couple illustration" class="img-fluid rounded shadow-lg">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="dashboard-hero bg-gradient-primary text-white py-5" sec:authorize="isAuthenticated()">
+            <div class="container py-4">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h1 class="display-5 fw-bold mb-3">Welcome back, <span sec:authentication="name">Username</span>!</h1>
+                        <p class="lead">Continue your journey to meaningful connections.</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end d-flex flex-column justify-content-center align-items-lg-end">
+                        <a th:href="@{/matching}" class="btn btn-light btn-lg mb-2">View Your Matches</a>
+                        <a th:href="@{/profile/search}" class="btn btn-outline-light">Search Profiles</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-5" sec:authorize="isAuthenticated()">
+            <div class="container py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold mb-0">Today's Matches</h2>
+                    <a th:href="@{/matching/daily-suggestions}" class="btn btn-outline-primary">View All</a>
+                </div>
+
+                <div class="row g-4">
+                    
+                    <div class="col-md-6 col-lg-3" th:each="suggestion : ${matchingSummary != null and matchingSummary.dailySuggestions != null ? matchingSummary.dailySuggestions : T(java.util.Collections).emptyList()}">
+                        <div class="card profile-card h-100 border-0 shadow-sm">
+                            <div class="position-relative">
+                                <img th:src="${suggestion.profileImageUrl != null ? suggestion.profileImageUrl : '/images/default-profile.jpg'}"
+                                     alt="Profile" class="card-img-top profile-img">
+                                <div class="compatibility-badge bg-primary text-white"
+                                     th:text="${#numbers.formatDecimal(suggestion.compatibilityScore, 0, 0) + '% Match'}">93% Match</div>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title mb-1" th:text="${suggestion.username + ', ' + (suggestion.age != null ? suggestion.age : '')}">Jane Doe, 28</h5>
+                                <p class="card-text text-muted mb-3">
+                                    <i class="bi bi-geo-alt-fill"></i> <span th:text="${suggestion.city != null ? suggestion.city : 'Unknown location'}">New York City</span>
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <a href="javascript:void(0);" class="btn btn-sm btn-primary flex-grow-1"
+                                       th:classappend="${suggestion.isLiked ? 'disabled' : ''}"
+                                       th:data-user-id="${suggestion.userId}"
+                                       onclick="likeUser(event, this, this.getAttribute('data-user-id'))">
+                                        <i class="bi" th:classappend="${suggestion.isLiked ? 'bi-heart-fill' : 'bi-heart'}"></i>
+                                        <span th:text="${suggestion.isLiked ? 'Liked' : 'Like'}">Like</span>
+                                    </a>
+                                    <a th:href="@{'/chat/new/' + ${suggestion.userId}}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                        <i class="bi bi-chat"></i> Message
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-12 text-center py-5" th:if="${matchingSummary == null || matchingSummary.dailySuggestions == null || matchingSummary.dailySuggestions.isEmpty()}">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle fs-4 me-2"></i>
+                            <span>No daily matches available right now. Check back tomorrow for new suggestions!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-5" sec:authorize="isAuthenticated()">
+            <div class="container py-4">
+                <h2 class="fw-bold mb-4">Your Activity</h2>
+
+                <div class="row g-4">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <div class="activity-icon bg-primary text-white mb-3">
+                                    <i class="bi bi-heart-fill"></i>
+                                </div>
+                                <h3 class="h5 fw-bold">Likes</h3>
+                                <p class="display-6 fw-bold mb-1" th:text="${matchingSummary != null ? matchingSummary.totalLikesReceived : '0'}">24</p>
+                                <p class="text-muted mb-0" th:text="${matchingSummary != null && matchingSummary.unviewedLikes > 0 ? matchingSummary.unviewedLikes + ' new today' : 'No new likes'}">3 new today</p>
+                                <a th:href="@{/matching/likes/received}" class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <div class="activity-icon bg-success text-white mb-3">
+                                    <i class="bi bi-people-fill"></i>
+                                </div>
+                                <h3 class="h5 fw-bold">Matches</h3>
+                                <p class="display-6 fw-bold mb-1" th:text="${matchingSummary != null ? matchingSummary.totalMatches : '0'}">8</p>
+                                <p class="text-muted mb-0" th:text="${matchingSummary != null && matchingSummary.unviewedMatches > 0 ? matchingSummary.unviewedMatches + ' new today' : 'No new matches'}">1 new today</p>
+                                <a th:href="@{/matching/matches}" class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <div class="activity-icon bg-info text-white mb-3">
+                                    <i class="bi bi-envelope-fill"></i>
+                                </div>
+                                <h3 class="h5 fw-bold">Messages</h3>
+                                <p class="display-6 fw-bold mb-1" th:text="${chatSummary != null ? chatSummary.totalChatRooms : '0'}">12</p>
+                                <p class="text-muted mb-0" th:text="${chatSummary != null && chatSummary.unreadMessages > 0 ? chatSummary.unreadMessages + ' unread' : 'No unread messages'}">5 unread</p>
+                                <a th:href="@{/chat}" class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body text-center">
+                                <div class="activity-icon bg-warning text-white mb-3">
+                                    <i class="bi bi-eye-fill"></i>
+                                </div>
+                                <h3 class="h5 fw-bold">Profile Views</h3>
+                                <p class="display-6 fw-bold mb-1" th:text="${matchingSummary != null ? matchingSummary.totalProfileViews : '0'}">37</p>
+                                <p class="text-muted mb-0">
+                                    <span th:if="${currentSubscription != null && currentSubscription.plan.name() == 'GOLD'}">
+                                        <a th:href="@{/matching/profile-views}">See who viewed you</a>
+                                    </span>
+                                    <span th:unless="${currentSubscription != null && currentSubscription.plan.name() == 'GOLD'}">
+                                        <a th:href="@{/subscription/plans}">Upgrade to see who</a>
+                                    </span>
+                                </p>
+                                <a th:href="${currentSubscription != null && currentSubscription.plan.name() == 'GOLD' ? '/matching/profile-views' : '/subscription/plans'}" class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-5" sec:authorize="isAuthenticated()">
+            <div class="container py-4">
+                <div class="card border-0 shadow">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-lg-4 mb-3 mb-lg-0">
+                                <h4 class="fw-bold mb-2">Current Plan:
+                                    
+                                    <span class="badge"
+                                          th:if="${currentSubscription != null}"
+                                          th:class="${currentSubscription.plan.name() == 'FREE' ? 'badge bg-secondary' :
+                                                     (currentSubscription.plan.name() == 'SILVER' ? 'badge bg-primary' :
+                                                     'badge bg-warning text-dark')}"
+                                          th:text="${currentSubscription != null ? currentSubscription.plan.name() : 'FREE'}">Free</span>
+                                </h4>
+                                <p class="text-muted mb-0" th:if="${currentSubscription != null && currentSubscription.plan.name() != 'GOLD'}">
+                                    Upgrade to unlock premium features
+                                </p>
+                                <p class="text-muted mb-0" th:if="${currentSubscription != null && currentSubscription.plan.name() == 'GOLD'}">
+                                    You have access to all premium features
+                                </p>
+                            </div>
+                            <div class="col-lg-5 mb-3 mb-lg-0">
+                                
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-primary" role="progressbar"
+                                             th:if="${subscriptionSummary != null}"
+                                             th:style="${'width: ' + (subscriptionSummary.remainingMessages > 0 ?
+                                                     (100 - (subscriptionSummary.remainingMessages * 100 /
+                                                     (subscriptionSummary.currentPlan.name() == 'FREE' ? subscriptionSummary.freeDailyMessageLimit :
+                                                      (subscriptionSummary.currentPlan.name() == 'SILVER' ? subscriptionSummary.silverDailyMessageLimit :
+                                                      subscriptionSummary.goldDailyMessageLimit)))) : 100) + '%'}"
+                                             aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <span th:if="${subscriptionSummary != null}">
+                                        <span th:text="${subscriptionSummary.remainingMessages}">1</span>/<span
+                                            th:text="${subscriptionSummary.currentPlan.name() == 'FREE' ?
+                                                         subscriptionSummary.freeDailyMessageLimit :
+                                                         (subscriptionSummary.currentPlan.name() == 'SILVER' ?
+                                                         subscriptionSummary.silverDailyMessageLimit :
+                                                         'Unlimited')}">3</span> messages
+                                    </span>
+                                </div>
+
+                                
+                                <div class="d-flex align-items-center" th:if="${subscriptionSummary != null && subscriptionSummary.currentPlan.name() != 'GOLD'}">
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-primary" role="progressbar"
+                                             th:style="${'width: ' + (subscriptionSummary.remainingProfileViews > 0 ?
+                                                     (100 - (subscriptionSummary.remainingProfileViews * 100 /
+                                                     (subscriptionSummary.currentPlan.name() == 'FREE' ? subscriptionSummary.freeProfileViewsLimit :
+                                                      subscriptionSummary.silverProfileViewsLimit))) : 100) + '%'}"
+                                             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <span>
+                                        <span th:text="${subscriptionSummary.remainingProfileViews}">0</span>/<span
+                                            th:text="${subscriptionSummary.currentPlan.name() == 'FREE' ?
+                                                         subscriptionSummary.freeProfileViewsLimit :
+                                                         subscriptionSummary.silverProfileViewsLimit}">10</span> profile views
+                                    </span>
+                                </div>
+
+                                
+                                <div class="d-flex align-items-center" th:if="${subscriptionSummary != null && subscriptionSummary.currentPlan.name() == 'GOLD'}">
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 100%"></div>
+                                    </div>
+                                    <span>Unlimited profile views</span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 text-center text-lg-end">
+                                <a th:href="@{/subscription/plans}"
+                                   th:classappend="${subscriptionSummary != null && subscriptionSummary.currentPlan.name() == 'GOLD' ? 'd-none' : ''}"
+                                   class="btn btn-primary">Upgrade Now</a>
+                                <p class="text-muted mb-0 mt-2" th:if="${subscriptionSummary != null}">
+                                    Valid until: <span th:text="${subscriptionSummary.validUntil}">31.12.2025</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-5" sec:authorize="isAuthenticated()">
+            <div class="container py-4">
+                <h2 class="fw-bold mb-4">Browse Profiles</h2>
+
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card bg-gradient-primary text-white border-0 h-100">
+                            <div class="card-body p-4 d-flex flex-column">
+                                <h3 class="h4 fw-bold mb-3">Browse Women</h3>
+                                <p class="mb-4">Discover amazing women who match your interests and preferences.</p>
+                                <a th:href="@{/profile/gallery/female}" class="btn btn-light mt-auto">View Gallery</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card bg-gradient-info text-white border-0 h-100">
+                            <div class="card-body p-4 d-flex flex-column">
+                                <h3 class="h4 fw-bold mb-3">Browse Men</h3>
+                                <p class="mb-4">Meet interesting men who are looking for connections just like you.</p>
+                                <a th:href="@{/profile/gallery/male}" class="btn btn-light mt-auto">View Gallery</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-5" sec:authorize="!isAuthenticated()">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <h2 class="display-5 fw-bold">Why Choose Meetruly?</h2>
+                    <p class="lead text-muted">Our approach to dating is different. We focus on real connections.</p>
+                </div>
+
+                <div class="row g-4 py-3">
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                                    <i class="bi bi-heart-fill fs-2"></i>
+                                </div>
+                                <h3 class="card-title h5 fw-bold">Meaningful Connections</h3>
+                                <p class="card-text text-muted">Our smart algorithm matches you with people who share your interests and values.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                                    <i class="bi bi-shield-check fs-2"></i>
+                                </div>
+                                <h3 class="card-title h5 fw-bold">Safe Environment</h3>
+                                <p class="card-text text-muted">All profiles are verified and approved by our admin team to ensure a safe dating experience.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                                    <i class="bi bi-chat-dots-fill fs-2"></i>
+                                </div>
+                                <h3 class="card-title h5 fw-bold">Real Conversations</h3>
+                                <p class="card-text text-muted">Our chat features help you have meaningful conversations and get to know each other better.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-5" sec:authorize="!isAuthenticated()">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <h2 class="display-5 fw-bold">Find the Perfect Plan for You</h2>
+                    <p class="lead text-muted">Choose the subscription that fits your needs and start connecting.</p>
+                </div>
+
+                <div class="row g-4 justify-content-center">
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header text-center bg-white border-0 pt-4">
+                                <h3 class="card-title fw-bold">Free</h3>
+                                <div class="price-tag my-3">
+                                    <span class="display-5 fw-bold">$0</span>
+                                    <span class="text-muted">/month</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> View other users with blurred photos</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Limited profile information</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Send up to 3 messages per day</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Daily match suggestions</li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-white text-center border-0 pb-4">
+                                <a th:href="@{/auth/register}" class="btn btn-outline-primary btn-lg">Get Started</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow">
+                            <div class="card-header text-center bg-gradient-primary text-white border-0 pt-4">
+                                <h3 class="card-title fw-bold">Silver</h3>
+                                <div class="price-tag my-3">
+                                    <span class="display-5 fw-bold">$9.99</span>
+                                    <span>/month</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> View clear photos for 10 profiles</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Full profile information</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Send up to 15 messages per day</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Daily match suggestions</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Chat with matches</li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-white text-center border-0 pb-4">
+                                <a th:href="@{/auth/register}" class="btn btn-primary btn-lg">Get Silver</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header text-center bg-warning text-dark border-0 pt-4">
+                                <h3 class="card-title fw-bold">Gold</h3>
+                                <div class="price-tag my-3">
+                                    <span class="display-5 fw-bold">$19.99</span>
+                                    <span class="text-muted">/month</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> View all photos without restrictions</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Unlimited messaging</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Priority in search results</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> See who liked your profile</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Read receipts for messages</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> See who viewed your profile</li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-white text-center border-0 pb-4">
+                                <a th:href="@{/auth/register}" class="btn btn-warning btn-lg">Get Gold</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-5" sec:authorize="!isAuthenticated()">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <h2 class="display-5 fw-bold">How Meetruly Works</h2>
+                    <p class="lead text-muted">Your journey to meaningful connections in 4 simple steps</p>
+                </div>
+
+                <div class="row g-5">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center">
+                            <div class="bg-primary bg-gradient text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-person-plus-fill fs-1"></i>
+                            </div>
+                            <h4 class="fw-bold">Create Profile</h4>
+                            <p class="text-muted">Sign up and create your detailed profile with your interests and preferences.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center">
+                            <div class="bg-primary bg-gradient text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-people-fill fs-1"></i>
+                            </div>
+                            <h4 class="fw-bold">Discover Matches</h4>
+                            <p class="text-muted">Browse profiles or let our algorithm find your perfect match daily.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center">
+                            <div class="bg-primary bg-gradient text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-chat-heart-fill fs-1"></i>
+                            </div>
+                            <h4 class="fw-bold">Connect</h4>
+                            <p class="text-muted">Like profiles and start meaningful conversations when you match.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center">
+                            <div class="bg-primary bg-gradient text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-calendar-heart fs-1"></i>
+                            </div>
+                            <h4 class="fw-bold">Meet Up</h4>
+                            <p class="text-muted">Take your connection to the next level by meeting in person.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-gradient-primary text-white py-5" sec:authorize="!isAuthenticated()">
+            <div class="container py-5 text-center">
+                <h2 class="display-5 fw-bold mb-4">Ready to Find Your Perfect Match?</h2>
+                <p class="lead mb-4">Join thousands of singles who have found meaningful connections on Meetruly.</p>
+                <a th:href="@{/auth/register}" class="btn btn-light btn-lg px-5 py-3 fw-bold">Create Your Profile Now</a>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<style>
+    
+    .hero {
+        background-image: linear-gradient(135deg, #6f42c1, #0d6efd);
+    }
+
+    .dashboard-hero {
+        background-image: linear-gradient(135deg, #6f42c1, #0d6efd);
+    }
+
+    
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    
+    .activity-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-size: 1.5rem;
+    }
+
+    
+    .profile-card .profile-img {
+        height: 220px;
+        object-fit: cover;
+    }
+
+    .compatibility-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    
+    .bg-gradient-primary {
+        background-image: linear-gradient(135deg, #6f42c1, #0d6efd);
+    }
+
+    .bg-gradient-info {
+        background-image: linear-gradient(135deg, #0dcaf0, #0d6efd);
+    }
+</style>
+
+
+<script th:inline="javascript">
+    
+    const csrfToken = /*[[${_csrf != null ? _csrf.token : ''}]]*/ '';
+    const csrfHeader = /*[[${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}]]*/ 'X-CSRF-TOKEN';
+
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        $(document).ajaxSend(function(e, xhr, options) {
+            xhr.setRequestHeader(csrfHeader, csrfToken);
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 140">
+    <!-- Define gradients -->
+    <defs>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+    </defs>
+
+    <!-- Double hearts -->
+    <path d="M45,55 C35,45 20,45 10,55 C0,65 0,85 10,95 L45,130 L80,95 C90,85 90,65 80,55 C70,45 55,45 45,55 Z"
+          fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1" filter="url(#glow)"/>
+
+    <!-- Text "Meetruly" -->
+    <text x="110" y="85" font-family="'Montserrat', sans-serif" font-size="65" font-weight="700" fill="#FFFFFF">
+        Meet<tspan fill="#FFFFFF">ruly</tspan>
+    </text>
+
+    <!-- Slogan -->
+    <text x="240" y="110" font-family="'Montserrat', sans-serif" font-size="16" font-weight="400" fill="#FFFFFF" text-anchor="middle">
+        Where meaningful connections begin
+    </text>
+</svg>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Purchase Subscription')}">
+    <title>Purchase Subscription - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Purchase Subscription', ~{::section})}" class="purchase-page">
+    <section>
+        
+        <div class="bg-gradient-primary text-white py-4 mb-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="fw-bold mb-1">Purchase Subscription</h1>
+                        <p class="lead mb-0">Complete your subscription purchase</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container py-4">
+            
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="alert alert-info" role="alert">
+                        <h4 class="alert-heading"><i class="bi bi-info-circle-fill"></i> Demo Mode</h4>
+                        <p>This is a demonstration of the payment process. All payments are simulated and no actual charges will be made.</p>
+                        <p class="mb-0">You can use any payment method and any details for testing purposes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header bg-white">
+                            <h3 class="h5 fw-bold mb-0">Payment Details</h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <form th:action="@{/subscription/purchase}" method="post" th:object="${purchaseRequest}" id="paymentForm">
+                                
+                                <input type="hidden" th:field="*{plan}" />
+
+                                
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold">Payment Method</label>
+                                    <div class="payment-methods">
+                                        <div class="form-check form-check-inline payment-method-option">
+                                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" id="creditCard" value="credit_card" checked>
+                                            <label class="form-check-label" for="creditCard">
+                                                <i class="bi bi-credit-card me-1"></i> Credit Card
+                                            </label>
+                                        </div>
+                                        <div class="form-check form-check-inline payment-method-option">
+                                            <input class="form-check-input" type="radio" th:field="*{paymentMethod}" id="paypal" value="paypal">
+                                            <label class="form-check-label" for="paypal">
+                                                <i class="bi bi-paypal me-1"></i> PayPal
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                
+                                <div id="creditCardDetails">
+                                    <div class="mb-3">
+                                        <label for="cardNumber" class="form-label">Card Number</label>
+                                        <input type="text" class="form-control" th:field="*{cardNumber}" id="cardNumber" placeholder="1234 5678 9012 3456">
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="cardExpiryDate" class="form-label">Expiry Date</label>
+                                            <input type="text" class="form-control" th:field="*{cardExpiryDate}" id="cardExpiryDate" placeholder="MM/YY">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="cardCVV" class="form-label">CVV</label>
+                                            <input type="text" class="form-control" th:field="*{cardCVV}" id="cardCVV" placeholder="123">
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="cardHolderName" class="form-label">Cardholder Name</label>
+                                        <input type="text" class="form-control" th:field="*{cardHolderName}" id="cardHolderName" placeholder="John Doe">
+                                    </div>
+                                </div>
+
+                                
+                                <div id="paypalDetails" class="d-none">
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle-fill me-2"></i>
+                                        You will be redirected to PayPal to complete your payment after clicking the Purchase button.
+                                    </div>
+                                    
+                                    <input type="hidden" name="paypalEmail" id="paypalEmail" value="">
+                                </div>
+
+                                
+                                <div class="form-check form-switch mb-4">
+                                    <input class="form-check-input" type="checkbox" th:field="*{autoRenew}" id="autoRenew">
+                                    <label class="form-check-label" for="autoRenew">
+                                        Enable auto-renewal (your subscription will automatically renew when it expires)
+                                    </label>
+                                </div>
+
+                                
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" type="checkbox" id="agreeTerms" required
+                                           oninvalid="this.setCustomValidity('Please accept the Terms of Service and Privacy Policy')"
+                                           onchange="this.setCustomValidity('')"
+                                           title="Please check this box to accept the Terms of Service and Privacy Policy">
+                                    <label class="form-check-label" for="agreeTerms">
+                                        I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</a> and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                                    </label>
+                                </div>
+
+                                
+                                <div class="d-grid">
+                                    <button type="submit" id="purchaseButton" class="btn btn-primary btn-lg">Complete Purchase</button>
+                                </div>
+
+                                
+                                <div class="alert alert-success mt-3 d-none" id="successAlert">
+                                    <strong>Success!</strong> Your subscription purchase is being processed. You will be redirected shortly...
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header bg-white">
+                            <h3 class="h5 fw-bold mb-0">Order Summary</h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>Subscription Plan:</span>
+                                <span class="fw-bold" th:text="${plan}">SILVER</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>Duration:</span>
+                                <span>1 Month</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-3">
+                                <span>Price:</span>
+                                <span th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER}" class="fw-bold">€9.99</span>
+                                <span th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="fw-bold">€19.99</span>
+                            </div>
+
+                            <hr>
+
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="fw-bold">Total:</span>
+                                <span th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER}" class="fw-bold">€9.99</span>
+                                <span th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="fw-bold">€19.99</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white">
+                            <h3 class="h5 fw-bold mb-0">What You'll Get</h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <ul class="list-unstyled">
+                                <li th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER}" class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    Clear profile photos for limited profiles
+                                </li>
+                                <li th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    Clear profile photos for all profiles
+                                </li>
+
+                                <li th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER}" class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span>Up to 15 messages per day</span>
+                                </li>
+                                <li th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span>Unlimited messages</span>
+                                </li>
+
+                                <li th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER}" class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span>Up to 30 profile views per day</span>
+                                </li>
+                                <li th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span>Unlimited profile views</span>
+                                </li>
+
+                                <li th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span>See who liked your profile</span>
+                                </li>
+
+                                <li th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span>See who viewed your profile</span>
+                                </li>
+
+                                <li th:if="${plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER || plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <span>Priority in search results</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Subscription Terms</h6>
+                <p>By purchasing a subscription, you agree to the following terms:</p>
+                <ul>
+                    <li>Your subscription will be active for 1 month from the date of purchase.</li>
+                    <li>If auto-renewal is enabled, your subscription will automatically renew at the end of the billing period.</li>
+                    <li>You can cancel your subscription at any time from your account settings.</li>
+                    <li>No refunds will be provided for unused subscription time.</li>
+                </ul>
+
+                <h6>Payment Terms</h6>
+                <p>When making a payment:</p>
+                <ul>
+                    <li>All payments are processed securely through our payment processors.</li>
+                    <li>We do not store your complete credit card information.</li>
+                    <li>All prices are in Euro (€) and include applicable taxes.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Payment Information</h6>
+                <p>When you make a payment:</p>
+                <ul>
+                    <li>Your payment information is processed securely by our payment processors.</li>
+                    <li>We only store the last 4 digits of your credit card for reference.</li>
+                    <li>Your full credit card details are never stored on our servers.</li>
+                </ul>
+
+                <h6>Billing Information</h6>
+                <p>We collect and store:</p>
+                <ul>
+                    <li>Transaction history for accounting and support purposes.</li>
+                    <li>Subscription status and renewal dates.</li>
+                    <li>Payment method type (but not the full details).</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const creditCardRadio = document.getElementById('creditCard');
+        const paypalRadio = document.getElementById('paypal');
+        const creditCardDetails = document.getElementById('creditCardDetails');
+        const paypalDetails = document.getElementById('paypalDetails');
+        const paymentForm = document.getElementById('paymentForm');
+        const purchaseButton = document.getElementById('purchaseButton');
+        const successAlert = document.getElementById('successAlert');
+
+        
+        const demoPayPalEmail = "test" + Math.floor(Math.random() * 10000) + "@example.com";
+        if (document.getElementById('paypalEmail')) {
+            document.getElementById('paypalEmail').value = demoPayPalEmail;
+        }
+
+        
+        if (document.getElementById('cardNumber')) {
+            document.getElementById('cardNumber').value = "4111 1111 1111 1111";
+        }
+        if (document.getElementById('cardExpiryDate')) {
+            document.getElementById('cardExpiryDate').value = "12/25";
+        }
+        if (document.getElementById('cardCVV')) {
+            document.getElementById('cardCVV').value = "123";
+        }
+        if (document.getElementById('cardHolderName')) {
+            document.getElementById('cardHolderName').value = "Test User";
+        }
+
+        function togglePaymentDetails() {
+            if (creditCardRadio.checked) {
+                creditCardDetails.classList.remove('d-none');
+                paypalDetails.classList.add('d-none');
+            } else {
+                creditCardDetails.classList.add('d-none');
+                paypalDetails.classList.remove('d-none');
+            }
+        }
+
+        
+        paymentForm.addEventListener('submit', function(e) {
+            
+            e.preventDefault();
+
+            
+            purchaseButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+            purchaseButton.disabled = true;
+
+            
+            setTimeout(function() {
+                successAlert.classList.remove('d-none');
+
+                
+                setTimeout(function() {
+                    
+                    paymentForm.submit();
+                }, 2000);
+            }, 1000);
+        });
+
+        creditCardRadio.addEventListener('change', togglePaymentDetails);
+        paypalRadio.addEventListener('change', togglePaymentDetails);
+
+        
+        togglePaymentDetails();
+    });
+</script>
+
+
+<style>
+    .purchase-page .payment-method-option label {
+        padding: 10px 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .purchase-page .payment-method-option input[type="radio"]:checked + label {
+        border-color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.1);
+    }
+
+    .purchase-page .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    
+    .bg-gradient-primary {
+        background-image: linear-gradient(135deg, #6f42c1, #0d6efd);
+    }
+</style>
+</body>
+</html>

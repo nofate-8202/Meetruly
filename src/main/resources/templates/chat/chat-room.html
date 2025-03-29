@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Chat')}">
+    <title>Chat - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Messages', ~{::section})}" class="chat-page">
+    <section>
+        
+        <div class="bg-gradient-primary text-white py-4 mb-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="fw-bold mb-1">Chat</h1>
+                        <p class="lead mb-0">Exchange messages with your matches</p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a th:href="@{/chat}" class="btn btn-light">
+                            <i class="bi bi-arrow-left"></i> Back to Messages
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container py-4">
+            <div class="row">
+                <div class="col-12">
+                    
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center">
+                                <div class="position-relative me-3">
+                                    <img th:src="${chatRoom.otherProfileImageUrl}" alt="Profile" class="rounded-circle" width="50" height="50">
+                                </div>
+
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-0" th:text="${chatRoom.otherUsername}">Username</h5>
+                                    <div class="small text-muted typing-indicator" style="display: none;">
+                                        <span>Typing<span class="typing-dots">...</span></span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <a th:href="@{/profile/{userId}(userId=${chatRoom.otherUserId})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-person"></i> View Profile
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" id="csrfToken">
+
+                    
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body p-3">
+                            <div class="chat-messages" id="chatMessages" style="height: 400px; overflow-y: auto;">
+                                
+                                <div class="text-center py-5 loading-indicator">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2">Loading messages...</p>
+                                </div>
+
+                                
+                                <div class="messages-content" style="display: none;">
+                                    
+                                    <div class="text-center my-3">
+                                        <span class="badge bg-light text-dark px-3 py-2">Today</span>
+                                    </div>
+
+                                    
+                                </div>
+
+                                
+                                <div class="text-center py-5 no-messages" style="display: none;">
+                                    <i class="bi bi-chat-square-text fs-1 text-muted mb-3 d-block"></i>
+                                    <h5>No messages yet</h5>
+                                    <p class="text-muted">Send a message to start the conversation.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-3">
+                            <div class="input-group" th:if="${canSendMessage}">
+                                <textarea class="form-control" id="messageInput" placeholder="Type a message..." rows="1"></textarea>
+                                <button class="btn btn-primary" type="button" id="sendButton">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </div>
+
+                            
+                            <div class="text-center py-3" th:unless="${canSendMessage}">
+                                <p class="text-danger mb-2">
+                                    <i class="bi bi-exclamation-circle"></i>
+                                    You have reached your daily message limit.
+                                </p>
+                                <a th:href="@{/subscription/plans}" class="btn btn-sm btn-primary">Upgrade Your Plan</a>
+                            </div>
+
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-2" th:if="${canSendMessage}">
+                                <small class="text-muted">
+                                    <span id="typingIndicator" style="display: none;">Someone is typing...</span>
+                                </small>
+                                <small class="text-muted remaining-messages-counter" th:text="'Messages remaining today: ' + ${remainingMessages}">
+                                    Messages remaining today: 3
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<template id="outgoingMessageTemplate">
+    <div class="message-row d-flex justify-content-end mb-3">
+        <div class="message-content">
+            <div class="message outgoing p-3 rounded bg-primary text-white">
+                <p class="mb-0 message-text"></p>
+            </div>
+            <div class="message-info d-flex justify-content-end">
+                <small class="text-muted message-time"></small>
+                <small class="text-muted ms-2 message-status">
+                    <i class="bi bi-check message-read-icon" style="display: none;"></i>
+                    <i class="bi bi-check-all message-delivered-icon"></i>
+                </small>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="incomingMessageTemplate">
+    <div class="message-row d-flex mb-3">
+        <div class="me-3">
+            <img src="" alt="Avatar" class="message-avatar rounded-circle" width="36" height="36">
+        </div>
+        <div class="message-content">
+            <div class="message incoming p-3 rounded bg-light">
+                <p class="mb-0 message-text"></p>
+            </div>
+            <div class="message-info">
+                <small class="text-muted message-time"></small>
+            </div>
+        </div>
+    </div>
+</template>
+
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const chatRoomId = /*[[${chatRoom.id}]]*/ '';
+        const currentUserId = /*[[${currentUserId}]]*/ '';
+        const otherUserId = /*[[${chatRoom.otherUserId}]]*/ '';
+        const otherUserProfileImg = /*[[${chatRoom.otherProfileImageUrl}]]*/ '';
+        let lastTypingStatus = false;
+
+        
+        const chatMessages = document.getElementById('chatMessages');
+        const messagesContent = document.querySelector('.messages-content');
+        const loadingIndicator = document.querySelector('.loading-indicator');
+        const noMessagesIndicator = document.querySelector('.no-messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const typingDotsElement = document.querySelector('.typing-dots');
+        const csrfToken = document.getElementById('csrfToken').value;
+
+        
+        const outgoingTemplate = document.getElementById('outgoingMessageTemplate');
+        const incomingTemplate = document.getElementById('incomingMessageTemplate');
+
+        
+        let stompClient = null;
+
+        
+        loadMessages();
+        initWebSocket();
+
+        
+        if (messageInput) {
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+
+                
+                handleTypingStatus(true);
+            });
+        }
+
+        
+        if (sendButton) {
+            sendButton.addEventListener('click', sendMessage);
+        }
+
+        
+        if (messageInput) {
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            
+            let typingTimer;
+            messageInput.addEventListener('keyup', function() {
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(function() {
+                    handleTypingStatus(false);
+                }, 1000);
+            });
+        }
+
+        
+        setInterval(function() {
+            if (typingDotsElement) {
+                const dots = typingDotsElement.textContent;
+                typingDotsElement.textContent = dots.length >= 3 ? '' : dots + '.';
+            }
+        }, 500);
+
+        
+        function loadMessages() {
+            fetch(`/chat/${chatRoomId}/messages`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load messages');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    loadingIndicator.style.display = 'none';
+
+                    if (data.content && data.content.length > 0) {
+                        messagesContent.style.display = 'block';
+                        renderMessages(data.content);
+
+                        
+                        markMessagesAsRead();
+                    } else {
+                        noMessagesIndicator.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading messages:', error);
+                    loadingIndicator.style.display = 'none';
+                    
+                    chatMessages.innerHTML += `
+                    <div class="text-center py-3">
+                        <p class="text-danger">Error loading messages. Please try again.</p>
+                    </div>
+                `;
+                });
+        }
+
+        
+        function renderMessages(messages) {
+            
+            const messagesContainer = document.createElement('div');
+
+            
+            let currentDate = null;
+
+            messages.forEach(message => {
+                const messageDate = new Date(message.sentAt).toDateString();
+
+                
+                if (currentDate !== messageDate) {
+                    currentDate = messageDate;
+
+                    const dateSeparator = document.createElement('div');
+                    dateSeparator.className = 'text-center my-3';
+                    dateSeparator.innerHTML = `
+                        <span class="badge bg-light text-dark px-3 py-2">
+                            ${formatDate(message.sentAt)}
+                        </span>
+                    `;
+                    messagesContainer.appendChild(dateSeparator);
+                }
+
+                
+                const messageElement = createMessageElement(message);
+                messagesContainer.appendChild(messageElement);
+            });
+
+            
+            messagesContent.innerHTML = '';
+            messagesContent.appendChild(messagesContainer);
+            scrollToBottom();
+        }
+
+        
+        function createMessageElement(message) {
+            const isOutgoing = message.senderId === currentUserId;
+            const template = isOutgoing ? outgoingTemplate : incomingTemplate;
+            const clone = document.importNode(template.content, true);
+
+            
+            const messageText = clone.querySelector('.message-text');
+            messageText.textContent = message.content;
+
+            
+            const messageTime = clone.querySelector('.message-time');
+            messageTime.textContent = formatTime(message.sentAt);
+
+            
+            if (!isOutgoing) {
+                const avatar = clone.querySelector('.message-avatar');
+                avatar.src = otherUserProfileImg || '/images/default-profile.jpg';
+            }
+
+            
+            if (isOutgoing && message.read) {
+                const readIcon = clone.querySelector('.message-read-icon');
+                const deliveredIcon = clone.querySelector('.message-delivered-icon');
+                if (readIcon) readIcon.style.display = 'inline';
+                if (deliveredIcon) deliveredIcon.style.display = 'none';
+            }
+
+            
+            const messageRow = clone.querySelector('.message-row');
+            if (messageRow) {
+                messageRow.setAttribute('data-message-id', message.id);
+            }
+
+            return clone;
+        }
+
+        
+        function sendMessage() {
+            if (!messageInput) return;
+
+            const content = messageInput.value.trim();
+            if (content) {
+                
+                messageInput.disabled = true;
+                if (sendButton) sendButton.disabled = true;
+
+                
+                handleTypingStatus(false);
+
+                fetch('/chat/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        recipientId: otherUserId,
+                        content: content,
+                        chatRoomId: chatRoomId
+                    })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to send message');
+                        }
+                        return response.json();
+                    })
+                    .then(message => {
+                        
+                        messageInput.value = '';
+                        messageInput.style.height = 'auto';
+
+                        
+                        const messageElement = createMessageElement(message);
+
+                        
+                        const messageDate = new Date(message.sentAt).toDateString();
+                        const lastDateSeparator = messagesContent.querySelector('.badge:last-of-type');
+                        const needsDateSeparator = !lastDateSeparator ||
+                            lastDateSeparator.textContent.trim() !== formatDate(message.sentAt);
+
+                        if (needsDateSeparator) {
+                            const dateSeparator = document.createElement('div');
+                            dateSeparator.className = 'text-center my-3';
+                            dateSeparator.innerHTML = `
+                            <span class="badge bg-light text-dark px-3 py-2">
+                                ${formatDate(message.sentAt)}
+                            </span>
+                        `;
+                            messagesContent.appendChild(dateSeparator);
+                        }
+
+                        messagesContent.appendChild(messageElement);
+                        messagesContent.style.display = 'block';
+                        noMessagesIndicator.style.display = 'none';
+                        scrollToBottom();
+
+                        
+                        const remainingMessagesElement = document.querySelector('.remaining-messages-counter');
+                        if (remainingMessagesElement) {
+                            const matches = remainingMessagesElement.textContent.match(/\d+/);
+                            if (matches && matches.length > 0) {
+                                const currentCount = parseInt(matches[0]);
+                                if (currentCount > 0) {
+                                    remainingMessagesElement.textContent = `Messages remaining today: ${currentCount - 1}`;
+                                }
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error sending message:', error);
+                        
+                        alert('Failed to send message. Please try again.');
+                    })
+                    .finally(() => {
+                        
+                        messageInput.disabled = false;
+                        if (sendButton) sendButton.disabled = false;
+                        messageInput.focus();
+                    });
+            }
+        }
+
+        
+        function markMessagesAsRead() {
+            fetch(`/chat/${chatRoomId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+                .catch(error => {
+                    console.error('Error marking messages as read:', error);
+                });
+        }
+
+        
+        function initWebSocket() {
+            const socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null; 
+
+            stompClient.connect({}, function() {
+                
+                stompClient.subscribe('/user/topic/messages', function(message) {
+                    const receivedMessage = JSON.parse(message.body);
+
+                    
+                    if (receivedMessage.chatRoomId === chatRoomId) {
+                        
+                        const messageElement = createMessageElement(receivedMessage);
+
+                        
+                        const messageDate = new Date(receivedMessage.sentAt).toDateString();
+                        const lastDateSeparator = messagesContent.querySelector('.badge:last-of-type');
+                        const needsDateSeparator = !lastDateSeparator ||
+                            lastDateSeparator.textContent.trim() !== formatDate(receivedMessage.sentAt);
+
+                        if (needsDateSeparator) {
+                            const dateSeparator = document.createElement('div');
+                            dateSeparator.className = 'text-center my-3';
+                            dateSeparator.innerHTML = `
+                                <span class="badge bg-light text-dark px-3 py-2">
+                                    ${formatDate(receivedMessage.sentAt)}
+                                </span>
+                            `;
+                            messagesContent.appendChild(dateSeparator);
+                        }
+
+                        messagesContent.appendChild(messageElement);
+                        messagesContent.style.display = 'block';
+                        noMessagesIndicator.style.display = 'none';
+                        scrollToBottom();
+
+                        
+                        markMessagesAsRead();
+                    }
+                });
+
+                
+                stompClient.subscribe('/user/topic/typing', function(message) {
+                    const typingData = JSON.parse(message.body);
+
+                    
+                    if (typingData.chatRoomId === chatRoomId) {
+                        const typingIndicatorUI = document.querySelector('.typing-indicator');
+
+                        if (typingIndicatorUI) {
+                            if (typingData.typing) {
+                                typingIndicatorUI.style.display = 'block';
+                            } else {
+                                typingIndicatorUI.style.display = 'none';
+                            }
+                        }
+                    }
+                });
+
+                
+                stompClient.subscribe('/user/topic/messages.read', function(message) {
+                    const readReceiptData = JSON.parse(message.body);
+
+                    
+                    const messageElements = document.querySelectorAll('.message-row');
+                    messageElements.forEach(element => {
+                        const messageId = element.getAttribute('data-message-id');
+                        if (messageId === readReceiptData.messageId) {
+                            const readIcon = element.querySelector('.message-read-icon');
+                            const deliveredIcon = element.querySelector('.message-delivered-icon');
+
+                            if (readIcon && deliveredIcon) {
+                                readIcon.style.display = 'inline';
+                                deliveredIcon.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+
+                
+                stompClient.subscribe('/user/topic/error', function(message) {
+                    const errorMessage = message.body;
+                    console.error('WebSocket error:', errorMessage);
+                    alert('Error: ' + errorMessage);
+                });
+            }, function(error) {
+                
+                console.error('WebSocket connection error:', error);
+            });
+        }
+
+        
+        function handleTypingStatus(isTyping) {
+            if (lastTypingStatus !== isTyping) {
+                lastTypingStatus = isTyping;
+
+                
+                if (stompClient && stompClient.connected) {
+                    stompClient.send("/app/chat.typing", {
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        JSON.stringify({
+                            chatRoomId: chatRoomId,
+                            typing: isTyping
+                        }));
+                } else {
+                    
+                    fetch('/chat/typing', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            chatRoomId: chatRoomId,
+                            typing: isTyping
+                        })
+                    }).catch(error => {
+                        console.error('Error sending typing status:', error);
+                    });
+                }
+            }
+        }
+
+        
+        function scrollToBottom() {
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const today = new Date();
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            if (date.toDateString() === today.toDateString()) {
+                return 'Today';
+            } else if (date.toDateString() === yesterday.toDateString()) {
+                return 'Yesterday';
+            } else {
+                return new Intl.DateTimeFormat('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+                }).format(date);
+            }
+        }
+
+        
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            return new Intl.DateTimeFormat('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            }).format(date);
+        }
+    });
+</script>
+
+<style>
+    
+    .chat-messages {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message {
+        max-width: 75%;
+        border-radius: 16px;
+    }
+
+    .message.outgoing {
+        border-bottom-right-radius: 4px;
+    }
+
+    .message.incoming {
+        border-bottom-left-radius: 4px;
+    }
+
+    .message-content {
+        max-width: 75%;
+    }
+
+    .message-text {
+        white-space: pre-wrap; 
+        word-break: break-word; 
+    }
+
+    
+    #messageInput {
+        resize: none;
+        overflow: hidden;
+        min-height: 38px;
+        max-height: 120px;
+    }
+
+    
+    @keyframes blink {
+        0% { opacity: .2; }
+        20% { opacity: 1; }
+        100% { opacity: .2; }
+    }
+
+    .typing-dots {
+        animation: blink 1.4s infinite both;
+    }
+
+    
+    .bg-gradient-primary {
+        background-image: linear-gradient(135deg, #6f42c1, #0d6efd);
+    }
+</style>
+</body>
+</html>

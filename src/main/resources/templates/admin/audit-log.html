@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Admin - Audit Log')}">
+    <title>Admin - Audit Log</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Admin - Audit Log', ~{::section})}" class="admin-page">
+    <section>
+        
+        <div class="dashboard-hero bg-gradient-primary text-white py-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h1 class="display-5 fw-bold mb-3">Audit Log</h1>
+                        <p class="lead">View history of all administrative actions.</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end d-flex flex-column justify-content-center align-items-lg-end">
+                        <a th:href="@{/admin/dashboard}" class="btn btn-light mb-2">
+                            <i class="bi bi-speedometer2"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-4 border-bottom">
+            <div class="container">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <form th:action="@{/admin/audit-log}" method="get" class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label for="actionType" class="form-label">Action Type</label>
+                                <select class="form-select" id="actionType" name="actionType">
+                                    <option value="" selected>All Actions</option>
+                                    <option th:each="type : ${actionTypes}"
+                                            th:value="${type}"
+                                            th:text="${type.name().replace('_', ' ')}"
+                                            th:selected="${param.actionType == type}">USER_APPROVAL</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="adminId" class="form-label">Admin</label>
+                                <select class="form-select" id="adminId" name="adminId">
+                                    <option value="" selected>All Admins</option>
+                                    
+                                    <option value="admin1" th:selected="${param.adminId == 'admin1'}">Admin 1</option>
+                                    <option value="admin2" th:selected="${param.adminId == 'admin2'}">Admin 2</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="startDate" class="form-label">Date Range</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" id="startDate" name="startDate"
+                                           th:value="${param.startDate}" placeholder="Start Date">
+                                    <input type="date" class="form-control" id="endDate" name="endDate"
+                                           th:value="${param.endDate}" placeholder="End Date">
+                                </div>
+                            </div>
+                            <div class="col-md-3 d-flex gap-2">
+                                <button type="submit" class="btn btn-primary mt-auto">
+                                    <i class="bi bi-search"></i> Filter
+                                </button>
+                                <a th:href="@{/admin/audit-log}" class="btn btn-outline-secondary mt-auto">
+                                    <i class="bi bi-x-circle"></i> Clear
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-4">
+            <div class="container">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                <tr>
+                                    <th scope="col">Date & Time</th>
+                                    <th scope="col">Admin</th>
+                                    <th scope="col">Action</th>
+                                    <th scope="col">Target User</th>
+                                    <th scope="col">Details</th>
+                                    <th scope="col">IP Address</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="action : ${actions}">
+                                    <td>
+                                        <small class="text-muted" th:text="${#temporals.format(action.performedAt, 'dd MMM yyyy, HH:mm:ss')}">
+                                            15 Mar 2023, 14:30:45
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-dark" th:text="${action.adminUsername}">adminUser</span>
+                                    </td>
+                                    <td>
+                                        
+                                        <span class="badge"
+                                              th:switch="${action.actionType.name()}">
+    <span th:case="'USER_APPROVAL'" class="badge bg-success">USER_APPROVAL</span>
+    <span th:case="'USER_REJECTION'" class="badge bg-danger">USER_REJECTION</span>
+    <span th:case="'ROLE_CHANGE'" class="badge bg-primary">ROLE_CHANGE</span>
+    <span th:case="'USER_BLOCK'" class="badge bg-danger">USER_BLOCK</span>
+    <span th:case="'USER_UNBLOCK'" class="badge bg-success">USER_UNBLOCK</span>
+    <span th:case="'REPORT_HANDLING'" class="badge bg-warning">REPORT_HANDLING</span>
+    <span th:case="*" class="badge bg-info">DEFAULT</span>
+</span>
+                                              th:text="${action.actionType.name().replace('_', ' ')}">USER_APPROVAL</span>
+                                    </td>
+                                    <td>
+                                        <div th:if="${action.targetUsername != null}" class="d-flex align-items-center">
+                                            <span class="fw-bold" th:text="${action.targetUsername}">user123</span>
+                                        </div>
+                                        <span th:unless="${action.targetUsername != null}">-</span>
+                                    </td>
+                                    <td>
+                                            <span class="d-inline-block text-truncate" style="max-width: 250px;" th:text="${action.actionDetails}"
+                                                  data-bs-toggle="tooltip" th:title="${action.actionDetails}">
+                                                Approved user: user123...
+                                            </span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted" th:text="${action.ipAddress}">192.168.1.1</small>
+                                    </td>
+                                </tr>
+                                <tr th:if="${actions.isEmpty()}">
+                                    <td colspan="6" class="text-center py-4">
+                                        <div class="py-5">
+                                            <i class="bi bi-search text-muted fs-1 d-block mb-3"></i>
+                                            <h5>No audit log entries found</h5>
+                                            <p class="text-muted mb-0">Try adjusting your filters or clear them to see all entries.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-white py-3" th:if="${totalPages > 1}">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                                    <a class="page-link" th:href="@{/admin/audit-log(page=${currentPage - 1}, actionType=${param.actionType}, adminId=${param.adminId}, startDate=${param.startDate}, endDate=${param.endDate})}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                                    th:classappend="${pageNum == currentPage ? 'active' : ''}">
+                                    <a class="page-link" th:href="@{/admin/audit-log(page=${pageNum}, actionType=${param.actionType}, adminId=${param.adminId}, startDate=${param.startDate}, endDate=${param.endDate})}" th:text="${pageNum + 1}">1</a>
+                                </li>
+                                <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                                    <a class="page-link" th:href="@{/admin/audit-log(page=${currentPage + 1}, actionType=${param.actionType}, adminId=${param.adminId}, startDate=${param.startDate}, endDate=${param.endDate})}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-4 mt-4">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="mb-3">About Audit Log</h5>
+                                <p>The audit log tracks all administrative actions taken in the system. Each entry contains the following information:</p>
+
+                                <ul>
+                                    <li><strong>Date & Time:</strong> When the action was performed.</li>
+                                    <li><strong>Admin:</strong> The administrator who performed the action.</li>
+                                    <li><strong>Action:</strong> The type of action performed.</li>
+                                    <li><strong>Target User:</strong> The user affected by the action (if applicable).</li>
+                                    <li><strong>Details:</strong> Additional information about the action.</li>
+                                    <li><strong>IP Address:</strong> The IP address from which the action was performed.</li>
+                                </ul>
+
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle-fill me-2"></i>
+                                    Audit logs are retained for 90 days for security and compliance purposes.
+                                </div>
+
+                                <h6 class="mt-4">Action Types</h6>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2">
+                                                <span class="badge bg-success">USER APPROVAL</span>
+                                                <span class="ms-2">Approving a user registration</span>
+                                            </li>
+                                            <li class="mb-2">
+                                                <span class="badge bg-danger">USER REJECTION</span>
+                                                <span class="ms-2">Rejecting a user registration</span>
+                                            </li>
+                                            <li class="mb-2">
+                                                <span class="badge bg-primary">ROLE CHANGE</span>
+                                                <span class="ms-2">Changing a user's role</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2">
+                                                <span class="badge bg-danger">USER BLOCK</span>
+                                                <span class="ms-2">Blocking a user account</span>
+                                            </li>
+                                            <li class="mb-2">
+                                                <span class="badge bg-success">USER UNBLOCK</span>
+                                                <span class="ms-2">Unblocking a user account</span>
+                                            </li>
+                                            <li class="mb-2">
+                                                <span class="badge bg-warning">REPORT HANDLING</span>
+                                                <span class="ms-2">Processing a user report</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    
+    .table th, .table td {
+        padding: 0.75rem 1rem;
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+    }
+
+    
+    .tooltip {
+        font-size: 0.875rem;
+    }
+</style>
+
+<script>
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+</body>
+</html>

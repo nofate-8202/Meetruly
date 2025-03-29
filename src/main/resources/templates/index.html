@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Home')}">
+    <title>Home - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Home', ~{::section})}">
+    <section>
+        
+        <div class="hero">
+            <div class="container py-5">
+                <div class="row align-items-center py-5">
+                    <div class="col-lg-6 text-center text-lg-start mb-5 mb-lg-0">
+                        <h1 class="display-4 fw-bold">Find Your Perfect Match</h1>
+                        <p class="lead mb-4">Meetruly helps you discover meaningful connections with like-minded people who share your interests and values.</p>
+                        <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center justify-content-lg-start">
+                            <a th:href="@{/auth/register}" class="btn btn-light btn-lg px-4 py-2">Get Started</a>
+                            <a th:href="@{/subscription/plans}" class="btn btn-outline-light btn-lg px-4 py-2">View Plans</a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <img th:src="@{/images/hero-illustration1.svg}" alt="Couple illustration" class="img-fluid rounded shadow-lg" style="max-height: 450px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-5">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <h2 class="display-5 fw-bold">Why Choose Meetruly?</h2>
+                    <p class="lead text-muted">Our approach to dating is different. We focus on real connections.</p>
+                </div>
+
+                <div class="row g-4 py-4">
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                                    <i class="bi bi-heart-fill fs-2"></i>
+                                </div>
+                                <h3 class="card-title h5 fw-bold">Meaningful Connections</h3>
+                                <p class="card-text text-muted">Our smart algorithm matches you with people who share your interests and values.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                                    <i class="bi bi-shield-check fs-2"></i>
+                                </div>
+                                <h3 class="card-title h5 fw-bold">Safe Environment</h3>
+                                <p class="card-text text-muted">All profiles are verified and approved by our admin team to ensure a safe dating experience.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 d-inline-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                                    <i class="bi bi-chat-dots-fill fs-2"></i>
+                                </div>
+                                <h3 class="card-title h5 fw-bold">Real Conversations</h3>
+                                <p class="card-text text-muted">Our chat features help you have meaningful conversations and get to know each other better.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-5">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <h2 class="display-5 fw-bold">Find the Perfect Plan for You</h2>
+                    <p class="lead text-muted">Choose the subscription that fits your needs and start connecting.</p>
+                </div>
+
+                <div class="row g-4">
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header text-center bg-white border-0 pt-4">
+                                <h3 class="card-title fw-bold">Free</h3>
+                                <div class="price-tag my-3">
+                                    <span class="display-5 fw-bold">$0</span>
+                                    <span class="text-muted">/month</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> View other users with blurred photos</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Limited profile information</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Send up to 3 messages per day</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Daily match suggestions</li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-white text-center border-0 pb-4">
+                                <a th:href="@{/auth/register}" class="btn btn-outline-primary btn-lg">Get Started</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow">
+                            <div class="card-header text-center bg-gradient-primary text-white border-0 pt-4">
+                                <h3 class="card-title fw-bold">Silver</h3>
+                                <div class="price-tag my-3">
+                                    <span class="display-5 fw-bold">$9.99</span>
+                                    <span>/month</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> View clear photos for 10 profiles</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Full profile information</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Send up to 15 messages per day</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Daily match suggestions</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Chat with matches</li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-white text-center border-0 pb-4">
+                                <a th:href="@{/subscription/purchase/silver}" class="btn btn-primary btn-lg">Get Silver</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-header text-center bg-warning text-dark border-0 pt-4">
+                                <h3 class="card-title fw-bold">Gold</h3>
+                                <div class="price-tag my-3">
+                                    <span class="display-5 fw-bold">$19.99</span>
+                                    <span class="text-muted">/month</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> View all photos without restrictions</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Unlimited messaging</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Priority in search results</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> See who liked your profile</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Read receipts for messages</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> See who viewed your profile</li>
+                                </ul>
+                            </div>
+                            <div class="card-footer bg-white text-center border-0 pb-4">
+                                <a th:href="@{/subscription/purchase/gold}" class="btn btn-warning btn-lg">Get Gold</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-5">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <h2 class="display-5 fw-bold">Success Stories</h2>
+                    <p class="lead text-muted">Hear from people who found their perfect match on Meetruly.</p>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Sarah J." class="rounded-circle me-3" width="60" height="60">
+                                    <div>
+                                        <h5 class="card-title mb-0">Sarah J.</h5>
+                                        <p class="text-muted mb-0">34, New York</p>
+                                    </div>
+                                </div>
+                                <p class="card-text">"I met my husband on Meetruly two years ago. The matching algorithm really works! We had so many common interests and values, which made our connection instant and meaningful."</p>
+                                <div class="text-warning">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="https://randomuser.me/api/portraits/men/44.jpg" alt="David K." class="rounded-circle me-3" width="60" height="60">
+                                    <div>
+                                        <h5 class="card-title mb-0">David K.</h5>
+                                        <p class="text-muted mb-0">29, Chicago</p>
+                                    </div>
+                                </div>
+                                <p class="card-text">"What I love about Meetruly is the quality of conversations. Unlike other dating apps, people are here for genuine connections. I've made great friends and met my girlfriend here."</p>
+                                <div class="text-warning">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-half"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Maria P." class="rounded-circle me-3" width="60" height="60">
+                                    <div>
+                                        <h5 class="card-title mb-0">Maria P.</h5>
+                                        <p class="text-muted mb-0">26, Los Angeles</p>
+                                    </div>
+                                </div>
+                                <p class="card-text">"The Gold plan is definitely worth it! I could see who liked my profile, which helped me focus on those who were genuinely interested. Met my boyfriend within a month of upgrading."</p>
+                                <div class="text-warning">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-5">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <h2 class="display-5 fw-bold">How Meetruly Works</h2>
+                    <p class="lead text-muted">Your journey to meaningful connections in 4 simple steps</p>
+                </div>
+
+                <div class="row g-5">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center">
+                            <div class="bg-primary bg-gradient text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-person-plus-fill fs-1"></i>
+                            </div>
+                            <h4 class="fw-bold">Create Profile</h4>
+                            <p class="text-muted">Sign up and create your detailed profile with your interests and preferences.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center">
+                            <div class="bg-primary bg-gradient text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-people-fill fs-1"></i>
+                            </div>
+                            <h4 class="fw-bold">Discover Matches</h4>
+                            <p class="text-muted">Browse profiles or let our algorithm find your perfect match daily.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center">
+                            <div class="bg-primary bg-gradient text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-chat-heart-fill fs-1"></i>
+                            </div>
+                            <h4 class="fw-bold">Connect</h4>
+                            <p class="text-muted">Like profiles and start meaningful conversations when you match.</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="text-center">
+                            <div class="bg-primary bg-gradient text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-calendar-heart fs-1"></i>
+                            </div>
+                            <h4 class="fw-bold">Meet Up</h4>
+                            <p class="text-muted">Take your connection to the next level by meeting in person.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-5">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <h2 class="display-5 fw-bold">Frequently Asked Questions</h2>
+                    <p class="lead text-muted">Get answers to common questions about Meetruly</p>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="accordion" id="faqAccordion">
+                            <div class="accordion-item border-0 mb-3 shadow-sm">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        How does Meetruly match users?
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Our matching algorithm analyzes user profiles and preferences to find compatible matches. We consider interests, values, relationship goals, and other factors to create meaningful connections. Each day, users receive personalized match suggestions based on compatibility scores.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item border-0 mb-3 shadow-sm">
+                                <h2 class="accordion-header" id="headingTwo">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                        Is Meetruly free to use?
+                                    </button>
+                                </h2>
+                                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Meetruly offers a free basic membership that allows you to create a profile, view blurred photos of other users, and send up to 3 messages per day. For additional features like viewing clear photos, sending more messages, and seeing who liked your profile, we offer Silver and Gold subscription plans.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item border-0 mb-3 shadow-sm">
+                                <h2 class="accordion-header" id="headingThree">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                        How does profile verification work?
+                                    </button>
+                                </h2>
+                                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        All profiles on Meetruly are reviewed by our admin team before becoming visible to other users. We verify email addresses and check profile information to ensure a safe and authentic community. This process usually takes 24-48 hours after registration.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item border-0 mb-3 shadow-sm">
+                                <h2 class="accordion-header" id="headingFour">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                        Can I cancel my subscription?
+                                    </button>
+                                </h2>
+                                <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Yes, you can cancel your subscription at any time. When you cancel, you will maintain access to your subscription benefits until the end of your current billing period. After that, your account will revert to a free membership with limited features.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-gradient-primary text-white py-5">
+            <div class="container py-5 text-center">
+                <h2 class="display-5 fw-bold mb-4">Ready to Find Your Perfect Match?</h2>
+                <p class="lead mb-4">Join thousands of singles who have found meaningful connections on Meetruly.</p>
+                <a th:href="@{/auth/register}" class="btn btn-light btn-lg px-5 py-3 fw-bold">Create Your Profile Now</a>
+            </div>
+        </div>
+    </section>
+</div>
+</body>
+</html>

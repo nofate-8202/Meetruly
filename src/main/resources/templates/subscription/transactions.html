@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Transaction History')}">
+    <title>Transaction History - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Transaction History', ~{::section})}" class="transactions-page">
+    <section>
+        
+        <div class="bg-gradient-primary text-white py-4 mb-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="fw-bold mb-1">Transaction History</h1>
+                        <p class="lead mb-0">View all your payment transactions and financial records</p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div class="btn-group">
+                            <a th:href="@{/subscription}" class="btn btn-light">
+                                <i class="bi bi-arrow-left"></i> Back to Subscription
+                            </a>
+                            <a th:href="@{/subscription/history}" class="btn btn-outline-light">
+                                <i class="bi bi-clock-history"></i> Subscription Timeline
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container py-4">
+            
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h3 class="h5 fw-bold mb-0">Financial Summary</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-bg bg-primary rounded-circle me-3 p-3">
+                                    <i class="bi bi-currency-euro text-white"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 text-muted">Total Spent</p>
+                                    <h4 class="mb-0">
+                                        €<span th:text="${transactions != null ? #numbers.formatDecimal(0, 1, 2) : '0.00'}">0.00</span>
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-bg bg-success rounded-circle me-3 p-3">
+                                    <i class="bi bi-credit-card text-white"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 text-muted">Payments</p>
+                                    
+                                    <h4 class="mb-0" th:with="count=${0}" th:text="${transactions != null ? #sets.size(transactions) : 0}">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-bg bg-warning rounded-circle me-3 p-3">
+                                    <i class="bi bi-arrow-repeat text-white"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 text-muted">Renewals</p>
+                                    
+                                    <h4 class="mb-0">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-bg bg-info rounded-circle me-3 p-3">
+                                    <i class="bi bi-arrow-counterclockwise text-white"></i>
+                                </div>
+                                <div>
+                                    <p class="mb-0 text-muted">Refunds</p>
+                                    
+                                    <h4 class="mb-0">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h3 class="h5 fw-bold mb-0">All Transactions</h3>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-funnel"></i> Filter
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                            <li><a class="dropdown-item" href="#">All Transactions</a></li>
+                            <li><a class="dropdown-item" href="#">Purchases Only</a></li>
+                            <li><a class="dropdown-item" href="#">Renewals Only</a></li>
+                            <li><a class="dropdown-item" href="#">Refunds Only</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Transaction Reference</th>
+                                <th>Type</th>
+                                <th>Plan</th>
+                                <th>Amount</th>
+                                <th>Payment Method</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${transactions == null || #lists.isEmpty(transactions)}">
+                                <td colspan="7" class="text-center py-4">No transactions found</td>
+                            </tr>
+                            <tr th:each="transaction : ${transactions}" th:if="${!#lists.isEmpty(transactions)}">
+                                
+                                <td th:with="enUS=${#locale.forLanguageTag('en-US')}" th:text="${#temporals.format(transaction.createdAt, 'dd MMM yyyy HH:mm', enUS)}">01 Jan 2025 14:30</td>
+                                <td th:text="${transaction.transactionReference}">TR-12345678</td>
+                                <td>
+                                    <span th:if="${transaction.type.name() == 'SUBSCRIPTION_PURCHASE'}" class="badge bg-primary">Purchase</span>
+                                    <span th:if="${transaction.type.name() == 'SUBSCRIPTION_RENEWAL'}" class="badge bg-info">Renewal</span>
+                                    <span th:if="${transaction.type.name() == 'REFUND'}" class="badge bg-warning text-dark">Refund</span>
+                                </td>
+                                <td>
+                                    <span th:text="${transaction.plan}"
+                                          th:class="${transaction.plan == T(com.meetruly.core.constant.SubscriptionPlan).FREE ? 'badge bg-secondary' : (transaction.plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER ? 'badge bg-primary' : 'badge bg-warning text-dark')}">
+                                        SILVER
+                                    </span>
+                                </td>
+                                <td th:text="${transaction.amount + ' ' + transaction.currency}">9.99 EUR</td>
+                                <td th:text="${transaction.paymentMethod}">Credit Card</td>
+                                <td>
+                                    <span th:if="${transaction.status.name() == 'COMPLETED'}" class="badge bg-success">Completed</span>
+                                    <span th:if="${transaction.status.name() == 'PENDING'}" class="badge bg-warning text-dark">Pending</span>
+                                    <span th:if="${transaction.status.name() == 'FAILED'}" class="badge bg-danger">Failed</span>
+                                    <span th:if="${transaction.status.name() == 'REFUNDED'}" class="badge bg-info">Refunded</span>
+                                    <span th:if="${transaction.status.name() == 'CANCELLED'}" class="badge bg-secondary">Cancelled</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white">
+                            <h3 class="h5 fw-bold mb-0">Payment Information</h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <p>All payments are processed securely through our payment processors. For security reasons, we do not store your complete payment information.</p>
+                            <p>If you have any questions about a specific transaction or need assistance with your subscription, please <a href="/contact">contact our support team</a>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white">
+                            <h3 class="h5 fw-bold mb-0">Refund Policy</h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <p>We do not provide refunds for unused subscription time. If you cancel your subscription, you will still have access to your premium features until the end of your current billing period.</p>
+                            <p>For disputed charges or technical billing issues, please <a href="/contact">contact our support team</a> as soon as possible.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<style>
+    .transactions-page .table th {
+        font-weight: 600;
+        background-color: #f8f9fa;
+    }
+
+    .transactions-page .card {
+        transition: transform 0.2s;
+    }
+
+    .transactions-page .card:hover {
+        transform: translateY(-5px);
+    }
+
+    
+    .bg-gradient-primary {
+        background-image: linear-gradient(135deg, #6f42c1, #0d6efd);
+    }
+
+    .icon-bg {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+    }
+</style>
+</body>
+</html>

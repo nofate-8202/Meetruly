@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Sent Likes')}">
+    <title>Sent Likes - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Matching', ~{::section})}" class="matching-page">
+    <section>
+        
+        <div class="dashboard-hero bg-gradient-primary text-white py-4">
+            <div class="container py-3">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h1 class="display-5 fw-bold mb-2">Sent Likes</h1>
+                        <p class="lead">Profiles you have liked</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end d-flex flex-column justify-content-center align-items-lg-end">
+                        <a th:href="@{/matching}" class="btn btn-light">Back to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-5">
+            <div class="container py-4">
+                <div class="row g-4">
+                    
+                    <div class="col-12 text-center py-5" th:if="${likes == null || likes.isEmpty()}">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill me-2"></i> You haven't liked any profiles yet.
+                            <a th:href="@{/profile/search}" class="btn btn-primary btn-sm ms-2">Find Profiles</a>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-6 col-lg-4" th:each="like : ${likes}">
+                        <div class="card profile-card h-100 border-0 shadow-sm">
+                            <div class="position-relative">
+                                <img th:src="${like.likedProfileImageUrl != null ? like.likedProfileImageUrl : '/images/default-profile.jpg'}"
+                                     alt="Profile" class="card-img-top profile-img">
+                                <div class="badge bg-primary position-absolute top-0 end-0 m-2">You liked</div>
+                                <div class="badge bg-secondary position-absolute top-0 start-0 m-2"
+                                     th:text="${#temporals.format(like.createdAt, 'dd MMM yyyy')}">01 Jan 2023</div>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title mb-1" th:text="${like.likedUsername}">Jane Doe</h5>
+                                <div class="d-flex gap-2 mt-3">
+                                    <button class="btn btn-sm btn-danger flex-grow-1"
+                                            th:onclick="'unlikeUser(\'' + ${like.likedId} + '\', this)'">
+                                        <i class="bi bi-heart-fill"></i> Unlike
+                                    </button>
+                                    <a th:href="@{'/profile/' + ${like.likedId}}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                        <i class="bi bi-person"></i> View Profile
+                                    </a>
+                                    <a th:href="@{'/chat/new/' + ${like.likedId}}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-chat"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <nav th:if="${totalPages > 1}" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/matching/likes/sent(page=${currentPage - 1})}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${currentPage == i ? 'active' : ''}">
+                            <a class="page-link" th:href="@{/matching/likes/sent(page=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/matching/likes/sent(page=${currentPage + 1})}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<script th:inline="javascript">
+    function unlikeUser(userId, button) {
+        
+        button.disabled = true;
+
+        fetch(/*[[@{/matching/like/}]]*/ '/matching/like/' + userId, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    
+                    button.innerHTML = '<i class="bi bi-heart"></i> Unliked';
+                    button.classList.remove('btn-danger');
+                    button.classList.add('btn-secondary');
+                    button.disabled = true;
+
+                    
+                    showNotification('Success', 'You have unliked this profile', 'success');
+
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    throw new Error('Failed to unlike user');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.disabled = false;
+                showNotification('Error', 'Failed to unlike this profile. Please try again.', 'error');
+            });
+    }
+
+    function showNotification(title, message, type) {
+        
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type} shadow`;
+
+        notification.innerHTML = `
+        <div class="notification-header">
+            <h5 class="notification-title">${title}</h5>
+            <span class="notification-close">&times;</span>
+        </div>
+        <div class="notification-body">
+            ${message}
+        </div>
+    `;
+
+        
+        document.body.appendChild(notification);
+
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+
+        
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        });
+
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 5000);
+    }
+</script>
+</body>
+</html>

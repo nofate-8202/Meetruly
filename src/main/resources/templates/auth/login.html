@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Login')}">
+    <title>Login - Meetruly</title>
+    
+    <link th:href="@{/css/auth.css}" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Login', ~{::section})}">
+    <section>
+        <div class="auth-wrapper">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <img th:src="@{/images/logo.svg}" alt="Meetruly Logo" class="auth-logo">
+                        <h2>Welcome Back</h2>
+                        <p>Sign in to continue to Meetruly</p>
+                    </div>
+
+                    <div class="auth-body">
+                        
+                        <form class="auth-form" th:action="@{/auth/login}" method="post">
+
+                            
+                            <div th:if="${param.error}" class="alert alert-danger mb-4">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Invalid username or password.
+                            </div>
+
+                            
+                            <div th:if="${param.logout}" class="alert alert-success mb-4">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                You have been logged out successfully.
+                            </div>
+
+                            
+                            <div class="form-group auth-input-group">
+                                <label for="username" class="form-label">Username</label>
+                                <i class="bi bi-person icon"></i>
+                                <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required autofocus>
+                            </div>
+
+                            
+                            <div class="form-group auth-input-group">
+                                <label for="password" class="form-label">Password</label>
+                                <i class="bi bi-lock icon"></i>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                                <i class="bi bi-eye password-toggle" id="togglePassword"></i>
+                            </div>
+
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="rememberMe" name="remember-me">
+                                    <label class="form-check-label" for="rememberMe">
+                                        Remember me
+                                    </label>
+                                </div>
+                                <a th:href="@{/auth/forgot-password}" class="text-primary">Forgot password?</a>
+                            </div>
+
+                            
+                            <button type="submit" class="btn btn-primary btn-block mb-4">Sign In</button>
+
+                            
+                            <div class="auth-divider">
+                                <span>or</span>
+                            </div>
+
+                            
+                            <div class="d-flex justify-content-center gap-3 mb-4">
+                                <a href="#" class="btn btn-outline-secondary">
+                                    <i class="bi bi-google me-2"></i>Google
+                                </a>
+                                <a href="#" class="btn btn-outline-secondary">
+                                    <i class="bi bi-facebook me-2"></i>Facebook
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="auth-footer">
+                        <p class="mb-0">Don't have an account? <a th:href="@{/auth/register}" class="text-primary fw-bold">Sign Up</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                
+                const togglePassword = document.getElementById('togglePassword');
+                const passwordInput = document.getElementById('password');
+
+                if (togglePassword && passwordInput) {
+                    togglePassword.addEventListener('click', function() {
+                        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                        passwordInput.setAttribute('type', type);
+
+                        
+                        this.classList.toggle('bi-eye');
+                        this.classList.toggle('bi-eye-slash');
+                    });
+                }
+            });
+        </script>
+    </section>
+</div>
+</body>
+</html>

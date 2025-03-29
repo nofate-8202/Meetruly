@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Search Profiles')}">
+    <title>Search Profiles - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Search Profiles', ~{::section})}" class="search-page">
+    <section>
+        
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        
+        <div class="bg-gradient-primary text-white py-4 mb-4">
+            <div class="container">
+                <h1 class="fw-bold">Find Your Perfect Match</h1>
+                <p class="lead mb-0">Use the filters below to find people who match your preferences</p>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-body p-4">
+                            <form th:action="@{/profile/search}" th:object="${searchRequest}" method="post">
+                                
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h5 class="mb-3 fw-bold"><i class="bi bi-filter"></i> Basic Filters</h5>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="gender" class="form-label">Gender</label>
+                                        <select class="form-select" id="gender" th:field="*{gender}">
+                                            <option value="">Any Gender</option>
+                                            <option value="MALE">Male</option>
+                                            <option value="FEMALE">Female</option>
+                                            <option value="OTHER">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="minAge" class="form-label">Min Age</label>
+                                        <input type="number" class="form-control" id="minAge" th:field="*{minAge}"
+                                               min="18" max="100" placeholder="18">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="maxAge" class="form-label">Max Age</label>
+                                        <input type="number" class="form-control" id="maxAge" th:field="*{maxAge}"
+                                               min="18" max="100" placeholder="99">
+                                    </div>
+                                </div>
+
+                                
+                                <div class="accordion mb-4" id="searchFiltersAccordion">
+                                    
+                                    <div class="accordion-item border-0 shadow-sm mb-3">
+                                        <h2 class="accordion-header" id="physicalCharHeading">
+                                            <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#physicalCharCollapse"
+                                                    aria-expanded="false" aria-controls="physicalCharCollapse">
+                                                <i class="bi bi-rulers me-2"></i> Physical Characteristics
+                                            </button>
+                                        </h2>
+                                        <div id="physicalCharCollapse" class="accordion-collapse collapse"
+                                             aria-labelledby="physicalCharHeading" data-bs-parent="#searchFiltersAccordion">
+                                            <div class="accordion-body">
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label for="eyeColor" class="form-label">Eye Color</label>
+                                                        <select class="form-select" id="eyeColor" th:field="*{eyeColor}">
+                                                            <option value="">Any Eye Color</option>
+                                                            <option value="BROWN">Brown</option>
+                                                            <option value="BLUE">Blue</option>
+                                                            <option value="GREEN">Green</option>
+                                                            <option value="HAZEL">Hazel</option>
+                                                            <option value="GRAY">Gray</option>
+                                                            <option value="AMBER">Amber</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label for="hairColor" class="form-label">Hair Color</label>
+                                                        <select class="form-select" id="hairColor" th:field="*{hairColor}">
+                                                            <option value="">Any Hair Color</option>
+                                                            <option value="BLACK">Black</option>
+                                                            <option value="BROWN">Brown</option>
+                                                            <option value="BLONDE">Blonde</option>
+                                                            <option value="RED">Red</option>
+                                                            <option value="GRAY">Gray</option>
+                                                            <option value="WHITE">White</option>
+                                                            <option value="OTHER">Other</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Height (cm)</label>
+                                                        <div class="row g-2">
+                                                            <div class="col">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text">Min</span>
+                                                                    <input type="number" class="form-control"
+                                                                           th:field="*{minHeight}" min="150" max="220" placeholder="150">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text">Max</span>
+                                                                    <input type="number" class="form-control"
+                                                                           th:field="*{maxHeight}" min="150" max="220" placeholder="200">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Weight (kg)</label>
+                                                        <div class="row g-2">
+                                                            <div class="col">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text">Min</span>
+                                                                    <input type="number" class="form-control"
+                                                                           th:field="*{minWeight}" min="40" max="150" placeholder="40">
+                                                                </div>
+                                                            </div>
+                                                            <div class="col">
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text">Max</span>
+                                                                    <input type="number" class="form-control"
+                                                                           th:field="*{maxWeight}" min="40" max="150" placeholder="100">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    
+                                    <div class="accordion-item border-0 shadow-sm mb-3">
+                                        <h2 class="accordion-header" id="interestsHeading">
+                                            <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#interestsCollapse"
+                                                    aria-expanded="false" aria-controls="interestsCollapse">
+                                                <i class="bi bi-stars me-2"></i> Interests & Relationship
+                                            </button>
+                                        </h2>
+                                        <div id="interestsCollapse" class="accordion-collapse collapse"
+                                             aria-labelledby="interestsHeading" data-bs-parent="#searchFiltersAccordion">
+                                            <div class="accordion-body">
+                                                <div class="row mb-3">
+                                                    <div class="col-12">
+                                                        <label class="form-label">Interests</label>
+                                                        <div class="border rounded p-3">
+                                                            <div class="row g-2">
+                                                                <div class="col-md-3 col-6">
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="checkbox"
+                                                                               value="TRAVEL" name="interests" id="travel">
+                                                                        <label class="form-check-label" for="travel">Travel</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3 col-6">
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="checkbox"
+                                                                               value="MUSIC" name="interests" id="music">
+                                                                        <label class="form-check-label" for="music">Music</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3 col-6">
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="checkbox"
+                                                                               value="SPORTS" name="interests" id="sports">
+                                                                        <label class="form-check-label" for="sports">Sports</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3 col-6">
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="checkbox"
+                                                                               value="READING" name="interests" id="reading">
+                                                                        <label class="form-check-label" for="reading">Reading</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3 col-6">
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="checkbox"
+                                                                               value="COOKING" name="interests" id="cooking">
+                                                                        <label class="form-check-label" for="cooking">Cooking</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3 col-6">
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="checkbox"
+                                                                               value="MOVIES" name="interests" id="movies">
+                                                                        <label class="form-check-label" for="movies">Movies</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3 col-6">
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="checkbox"
+                                                                               value="ART" name="interests" id="art">
+                                                                        <label class="form-check-label" for="art">Art</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3 col-6">
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input" type="checkbox"
+                                                                               value="GAMING" name="interests" id="gaming">
+                                                                        <label class="form-check-label" for="gaming">Gaming</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label for="relationshipType" class="form-label">Looking For</label>
+                                                        <select class="form-select" id="relationshipType" th:field="*{relationshipType}">
+                                                            <option value="">Any Relationship Type</option>
+                                                            <option value="FRIENDSHIP">Friendship</option>
+                                                            <option value="CASUAL_DATING">Casual Dating</option>
+                                                            <option value="LONG_TERM">Long Term Relationship</option>
+                                                            <option value="MARRIAGE">Marriage</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label for="relationshipStatus" class="form-label">Relationship Status</label>
+                                                        <select class="form-select" id="relationshipStatus" th:field="*{relationshipStatus}">
+                                                            <option value="">Any Status</option>
+                                                            <option value="SINGLE">Single</option>
+                                                            <option value="DIVORCED">Divorced</option>
+                                                            <option value="WIDOWED">Widowed</option>
+                                                            <option value="SEPARATED">Separated</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    
+                                    <div class="accordion-item border-0 shadow-sm">
+                                        <h2 class="accordion-header" id="locationHeading">
+                                            <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#locationCollapse"
+                                                    aria-expanded="false" aria-controls="locationCollapse">
+                                                <i class="bi bi-geo-alt me-2"></i> Location
+                                            </button>
+                                        </h2>
+                                        <div id="locationCollapse" class="accordion-collapse collapse"
+                                             aria-labelledby="locationHeading" data-bs-parent="#searchFiltersAccordion">
+                                            <div class="accordion-body">
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label for="country" class="form-label">Country</label>
+                                                        <select class="form-select" id="country" th:field="*{country}">
+                                                            <option value="">Any Country</option>
+                                                            <option value="US">United States</option>
+                                                            <option value="UK">United Kingdom</option>
+                                                            <option value="CA">Canada</option>
+                                                            <option value="AU">Australia</option>
+                                                            <option value="DE">Germany</option>
+                                                            <option value="FR">France</option>
+                                                            <option value="BG">Bulgaria</option>
+                                                            
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label for="city" class="form-label">City</label>
+                                                        <select class="form-select" id="city" th:field="*{city}" disabled>
+                                                            <option value="">Select a Country First</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="true"
+                                                   id="sortByInterestMatch" th:field="*{sortByInterestMatch}">
+                                            <label class="form-check-label" for="sortByInterestMatch">
+                                                Sort results by interest match
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <div class="btn-group">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="bi bi-search"></i> Search
+                                            </button>
+                                            <button type="reset" class="btn btn-outline-secondary">
+                                                <i class="bi bi-x-circle"></i> Reset
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const countrySelect = document.getElementById('country');
+        const citySelect = document.getElementById('city');
+
+        countrySelect.addEventListener('change', function() {
+            
+            citySelect.innerHTML = '<option value="">Select City</option>';
+
+            if (this.value) {
+                
+                citySelect.disabled = false;
+
+                
+                
+                const cities = getCitiesForCountry(this.value);
+
+                
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.value;
+                    option.textContent = city.label;
+                    citySelect.appendChild(option);
+                });
+            } else {
+                
+                citySelect.disabled = true;
+                citySelect.innerHTML = '<option value="">Select a Country First</option>';
+            }
+        });
+
+        
+        function getCitiesForCountry(country) {
+            const citiesByCountry = {
+                'US': [
+                    { value: 'NEW_YORK', label: 'New York' },
+                    { value: 'LOS_ANGELES', label: 'Los Angeles' },
+                    { value: 'CHICAGO', label: 'Chicago' }
+                ],
+                'UK': [
+                    { value: 'LONDON', label: 'London' },
+                    { value: 'MANCHESTER', label: 'Manchester' },
+                    { value: 'BIRMINGHAM', label: 'Birmingham' }
+                ],
+                'BG': [
+                    { value: 'SOFIA', label: 'Sofia' },
+                    { value: 'PLOVDIV', label: 'Plovdiv' },
+                    { value: 'VARNA', label: 'Varna' },
+                    { value: 'BURGAS', label: 'Burgas' }
+                ]
+                
+            };
+
+            return citiesByCountry[country] || [];
+        }
+    });
+</script>
+
+
+<style>
+    .bg-gradient-primary {
+        background-image: linear-gradient(135deg, #6f42c1, #0d6efd);
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: rgba(13, 110, 253, 0.1);
+        color: #0d6efd;
+    }
+
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(13, 110, 253, 0.25);
+    }
+</style>
+</body>
+</html>

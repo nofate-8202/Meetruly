@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Admin - Revenue Statistics')}">
+    <title>Admin - Revenue Statistics</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Admin - Revenue Statistics', ~{::section})}" class="admin-page">
+    <section>
+        
+        <div class="dashboard-hero bg-gradient-primary text-white py-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h1 class="display-5 fw-bold mb-3">Revenue Statistics</h1>
+                        <p class="lead">Analyze platform revenues and subscription data.</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end d-flex flex-column justify-content-center align-items-lg-end">
+                        <a th:href="@{/admin/dashboard}" class="btn btn-light mb-2">
+                            <i class="bi bi-speedometer2"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-4 border-bottom">
+            <div class="container">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <form th:action="@{/admin/revenue}" method="get" class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate"
+                                       th:value="${startDate != null ? #temporals.format(startDate, 'yyyy-MM-dd') : ''}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate" name="endDate"
+                                       th:value="${endDate != null ? #temporals.format(endDate, 'yyyy-MM-dd') : ''}" required>
+                            </div>
+                            <div class="col-md-4 d-flex gap-2">
+                                <button type="submit" class="btn btn-primary mt-auto">
+                                    <i class="bi bi-search"></i> Apply Filter
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary mt-auto" id="quickDateRange">
+                                    <i class="bi bi-calendar3"></i> Quick Select
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-4">
+            <div class="container">
+                <div class="row g-4">
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="text-muted">Total Revenue</h6>
+                                <h2 class="display-6 fw-bold text-success" th:text="${#numbers.formatDecimal(stats.totalRevenue, 0, 'COMMA', 2, 'POINT') + ' €'}">42,351.25 €</h2>
+                                <p class="mb-0 text-muted">
+                                    <span th:if="${stats.growthPercentage >= 0}" class="text-success">
+                                        <i class="bi bi-graph-up-arrow"></i>
+                                        <span th:text="${'+' + #numbers.formatDecimal(stats.growthPercentage, 1, 2) + '%'}">+12.5%</span>
+                                    </span>
+                                    <span th:if="${stats.growthPercentage < 0}" class="text-danger">
+                                        <i class="bi bi-graph-down-arrow"></i>
+                                        <span th:text="${#numbers.formatDecimal(stats.growthPercentage, 1, 2) + '%'}">-5.3%</span>
+                                    </span>
+                                    <span class="ms-1">vs previous period</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="text-muted">Daily Average</h6>
+                                <h2 class="display-6 fw-bold" th:text="${#numbers.formatDecimal(stats.revenuePerDay, 0, 'COMMA', 2, 'POINT') + ' €'}">1,423.80 €</h2>
+                                <p class="mb-0 text-muted">Per day during selected period</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="text-muted">Active Subscriptions</h6>
+                                <h2 class="display-6 fw-bold" th:text="${stats.activeSubscriptions}">3,914</h2>
+                                <p class="mb-0 text-muted">Paid subscriptions (Silver + Gold)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="text-muted">Avg. Revenue Per User</h6>
+                                <h2 class="display-6 fw-bold" th:text="${#numbers.formatDecimal(stats.averageRevenuePerUser, 0, 'COMMA', 2, 'POINT') + ' €'}">10.82 €</h2>
+                                <p class="mb-0 text-muted">Based on active users</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-4">
+            <div class="container">
+                <div class="row g-4">
+                    
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="mb-0">Revenue by Subscription Plan</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container" style="position: relative; height:300px;">
+                                    
+                                    <canvas id="planRevenueChart"></canvas>
+                                </div>
+
+                                <div class="mt-4">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <div>
+                                            <span class="badge bg-primary p-2">Silver</span>
+                                            <span class="ms-2" th:text="${#numbers.formatDecimal(stats.revenueByPlan.get('SILVER'), 0, 'COMMA', 2, 'POINT') + ' €'}">25,410.00 €</span>
+                                        </div>
+                                        <span class="text-muted" th:text="${#numbers.formatDecimal((stats.revenueByPlan.get('SILVER') != null ? stats.revenueByPlan.get('SILVER') : 0) * 100 / (stats.totalRevenue != null ? stats.totalRevenue : 1), 1, 1) + '%'}">60.0%</span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <span class="badge bg-warning p-2">Gold</span>
+                                            <span class="ms-2" th:text="${#numbers.formatDecimal(stats.revenueByPlan.get('GOLD'), 0, 'COMMA', 2, 'POINT') + ' €'}">16,940.00 €</span>
+                                        </div>
+                                        <span class="text-muted"
+                                              th:text="${(stats.revenueByPlan.get('GOLD') != null and stats.totalRevenue != 0)
+   ? #numbers.formatDecimal(stats.revenueByPlan.get('GOLD') * 100 / stats.totalRevenue, 1, 1) + '%'
+   : '0%'}">
+    40.0%
+</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-lg-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="mb-0">Subscription Distribution</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container" style="position: relative; height:300px;">
+                                    
+                                    <canvas id="subscriptionDistributionChart"></canvas>
+                                </div>
+
+                                <div class="row mt-4">
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="d-flex align-items-center justify-content-center bg-secondary bg-opacity-10 rounded-circle mx-auto mb-2" style="width: 60px; height: 60px;">
+                                                <span class="badge bg-secondary" th:text="${stats.subscriptionCountByPlan.get('FREE')}">8,432</span>
+                                            </div>
+                                            <h6>Free</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="d-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mx-auto mb-2" style="width: 60px; height: 60px;">
+                                                <span class="badge bg-primary" th:text="${stats.subscriptionCountByPlan.get('SILVER')}">2,541</span>
+                                            </div>
+                                            <h6>Silver</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <div class="d-flex align-items-center justify-content-center bg-warning bg-opacity-10 rounded-circle mx-auto mb-2" style="width: 60px; height: 60px;">
+                                                <span class="badge bg-warning" th:text="${stats.subscriptionCountByPlan.get('GOLD')}">1,372</span>
+                                            </div>
+                                            <h6>Gold</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-4">
+            <div class="container">
+                <div class="row g-4">
+                    
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Daily Revenue</h5>
+                                <div class="btn-group" role="group" aria-label="View options">
+                                    <button type="button" class="btn btn-sm btn-outline-primary active" id="viewDailyBtn">Daily</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="viewMonthlyBtn">Monthly</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container" style="position: relative; height:400px;">
+                                    
+                                    <canvas id="dailyRevenueChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="mb-0">Revenue Breakdown</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <h6 class="text-muted mb-3">Revenue by Period</h6>
+                                    <table class="table table-sm">
+                                        <tbody>
+                                        <tr>
+                                            <td>Today</td>
+                                            <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(stats.revenueByDay.get(#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')), 0, 'COMMA', 2, 'POINT') + ' €'}">874.50 €</td>
+                                        </tr>
+                                        <tr>
+                                            <td>This Week</td>
+                                            <td class="text-end fw-bold">5,432.75 €</td>
+                                        </tr>
+                                        <tr>
+                                            <td>This Month</td>
+                                            <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(stats.revenueByMonth.get(#temporals.format(#temporals.createNow(), 'yyyy-MM')), 0, 'COMMA', 2, 'POINT') + ' €'}">18,547.30 €</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Previous Month</td>
+                                            <td class="text-end fw-bold">16,985.45 €</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div>
+                                    <h6 class="text-muted mb-3">Top Revenue Days</h6>
+                                    <table class="table table-sm">
+                                        <tbody>
+                                        <tr>
+                                            <td>15 Mar 2023</td>
+                                            <td class="text-end fw-bold">1,254.75 €</td>
+                                        </tr>
+                                        <tr>
+                                            <td>22 Mar 2023</td>
+                                            <td class="text-end fw-bold">1,187.50 €</td>
+                                        </tr>
+                                        <tr>
+                                            <td>05 Mar 2023</td>
+                                            <td class="text-end fw-bold">1,102.25 €</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    
+    .chart-container {
+        position: relative;
+        height: 100%;
+        width: 100%;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        document.getElementById('quickDateRange').addEventListener('click', function(e) {
+            e.preventDefault();
+            const button = this;
+            const buttonRect = button.getBoundingClientRect();
+
+            
+            const dropdown = document.createElement('div');
+            dropdown.className = 'dropdown-menu show';
+            dropdown.style.position = 'absolute';
+            dropdown.style.top = (buttonRect.bottom + window.scrollY) + 'px';
+            dropdown.style.left = (buttonRect.left + window.scrollX) + 'px';
+            dropdown.style.zIndex = '1000';
+
+            
+            const ranges = [
+                { text: 'Today', start: 0, end: 0 },
+                { text: 'Yesterday', start: 1, end: 1 },
+                { text: 'Last 7 Days', start: 6, end: 0 },
+                { text: 'Last 30 Days', start: 29, end: 0 },
+                { text: 'This Month', start: 'month', end: 0 },
+                { text: 'Last Month', start: 'prevMonth', end: 'prevMonth' },
+                { text: 'This Year', start: 'year', end: 0 },
+            ];
+
+            ranges.forEach(range => {
+                const item = document.createElement('a');
+                item.className = 'dropdown-item';
+                item.href = '#';
+                item.textContent = range.text;
+
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    setDateRange(range);
+                    dropdown.remove();
+                });
+
+                dropdown.appendChild(item);
+            });
+
+            
+            document.body.appendChild(dropdown);
+
+            
+            function handleClickOutside(e) {
+                if (!dropdown.contains(e.target) && e.target !== button) {
+                    dropdown.remove();
+                    document.removeEventListener('click', handleClickOutside);
+                }
+            }
+
+            setTimeout(() => {
+                document.addEventListener('click', handleClickOutside);
+            }, 0);
+        });
+
+        
+        function setDateRange(range) {
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const today = new Date();
+            let startDate, endDate;
+
+            
+            if (range.end === 0) {
+                endDate = today;
+            } else if (range.end === 'prevMonth') {
+                
+                endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+            } else {
+                
+                endDate = new Date(today);
+                endDate.setDate(today.getDate() - range.end);
+            }
+
+            
+            if (range.start === 'month') {
+                
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            } else if (range.start === 'prevMonth') {
+                
+                startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            } else if (range.start === 'year') {
+                
+                startDate = new Date(today.getFullYear(), 0, 1);
+            } else {
+                
+                startDate = new Date(today);
+                startDate.setDate(today.getDate() - range.start);
+            }
+
+            
+            startDateInput.value = formatDate(startDate);
+            endDateInput.value = formatDate(endDate);
+        }
+
+        
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        
+        initializeCharts();
+
+        
+        document.getElementById('viewDailyBtn').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('viewMonthlyBtn').classList.remove('active');
+            toggleRevenueChartView('daily');
+        });
+
+        document.getElementById('viewMonthlyBtn').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('viewDailyBtn').classList.remove('active');
+            toggleRevenueChartView('monthly');
+        });
+
+        
+        function initializeCharts() {
+            
+            const planRevenueCtx = document.getElementById('planRevenueChart').getContext('2d');
+            const planRevenueChart = new Chart(planRevenueCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Silver', 'Gold'],
+                    datasets: [{
+                        data: [60, 40], 
+                        backgroundColor: [
+                            '#0d6efd', 
+                            '#ffc107'  
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            
+            const subDistCtx = document.getElementById('subscriptionDistributionChart').getContext('2d');
+            const subDistChart = new Chart(subDistCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Free', 'Silver', 'Gold'],
+                    datasets: [{
+                        data: [68, 21, 11], 
+                        backgroundColor: [
+                            '#6c757d', 
+                            '#0d6efd', 
+                            '#ffc107'  
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            
+            const dailyRevenueCtx = document.getElementById('dailyRevenueChart').getContext('2d');
+            window.dailyRevenueChart = new Chart(dailyRevenueCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mar 1', 'Mar 2', 'Mar 3', 'Mar 4', 'Mar 5', 'Mar 6', 'Mar 7'], 
+                    datasets: [{
+                        label: 'Daily Revenue',
+                        data: [1200, 950, 1100, 1300, 1250, 1400, 1350], 
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        borderColor: '#0d6efd',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + ' €';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' €';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            
+            window.monthlyData = {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], 
+                data: [32500, 35000, 42500, 38000, 40000, 45000] 
+            };
+
+            
+            window.dailyData = {
+                labels: ['Mar 1', 'Mar 2', 'Mar 3', 'Mar 4', 'Mar 5', 'Mar 6', 'Mar 7'], 
+                data: [1200, 950, 1100, 1300, 1250, 1400, 1350] 
+            };
+        }
+
+        
+        function toggleRevenueChartView(view) {
+            const chart = window.dailyRevenueChart;
+
+            if (view === 'daily') {
+                chart.data.labels = window.dailyData.labels;
+                chart.data.datasets[0].data = window.dailyData.data;
+                chart.data.datasets[0].label = 'Daily Revenue';
+            } else {
+                chart.data.labels = window.monthlyData.labels;
+                chart.data.datasets[0].data = window.monthlyData.data;
+                chart.data.datasets[0].label = 'Monthly Revenue';
+            }
+
+            chart.update();
+        }
+    });
+</script>
+</body>
+</html>

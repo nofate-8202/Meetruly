@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<header th:fragment="header">
+    <nav class="navbar">
+        <div class="container">
+            
+            <a class="navbar-brand me-auto" th:href="@{/}" style="min-width: 180px; margin-left: -150px;">
+                <img th:src="@{/images/logo1.svg}" alt="Meetruly Logo" style="height: 80px; width: auto; min-width: 160px;">
+            </a>
+
+            <div class="d-flex align-items-center">
+                
+                <div sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/auth/login}" class="btn btn-outline-primary me-2">Login</a>
+                    <a th:href="@{/auth/register}" class="btn btn-primary">Register</a>
+                </div>
+
+                
+                <div sec:authorize="isAuthenticated()" class="d-flex align-items-center">
+                    
+                    <ul class="navbar-nav d-flex flex-row" sec:authorize="hasAnyRole('USER', 'ADMIN')">
+                        <li class="nav-item">
+                            <a class="nav-link nav-matches" th:href="@{/matching}">
+                                <i class="bi bi-heart-fill nav-icon"></i>Matches
+                                <span class="badge" th:if="${unviewedMatches != null && unviewedMatches > 0}"
+                                      th:text="${unviewedMatches}">3</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-messages" th:href="@{/chat}">
+                                <i class="bi bi-chat-dots-fill nav-icon"></i>Messages
+                                <span class="badge" th:if="${unreadMessages != null && unreadMessages > 0}"
+                                      th:text="${unreadMessages}">5</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-search" th:href="@{/profile/search}">
+                                <i class="bi bi-search nav-icon"></i>Search
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-subscription" th:href="@{/subscription}">
+                                <i class="bi bi-gem nav-icon"></i>Subscription
+                            </a>
+                        </li>
+                        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                            <a class="nav-link nav-admin" th:href="@{/admin/dashboard}">
+                                <i class="bi bi-speedometer2 nav-icon"></i>Admin
+                            </a>
+                        </li>
+                    </ul>
+                    <div sec:authorize="!hasAnyRole('USER', 'ADMIN')">
+                        <a th:href="@{/auth/logout}" class="btn btn-outline-danger">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </div>
+
+                    
+                    <div class="user-dropdown ms-3">
+                        <a href="#" class="user-dropdown-toggle d-flex align-items-center" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img th:src="@{/images/default-profile.jpg}" alt="Profile" class="rounded-circle">
+                            <span sec:authentication="name">Username</span>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" th:href="@{/profile}">
+                                <i class="bi bi-person-fill"></i>My Profile</a>
+                            </li>
+                            <li><a class="dropdown-item" th:href="@{/subscription}">
+                                <i class="bi bi-gem"></i>My Subscription</a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" th:href="@{/auth/logout}">
+                                <i class="bi bi-box-arrow-right"></i>Logout</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="container">
+            <span th:text="${errorMessage}">Error message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="container">
+            <span th:text="${successMessage}">Success message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+</header>
+</body>
+</html>

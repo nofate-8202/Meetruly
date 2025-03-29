@@ -195,7 +195,6 @@ public class UserController {
     @GetMapping("/{userId}")
     @PreAuthorize("isAuthenticated()")
     public String viewUserProfile(@PathVariable("userId") UUID userId, Model model, Principal principal) {
-
         try {
 
             String username = principal.getName();
@@ -213,9 +212,14 @@ public class UserController {
 
             Optional<UserProfileDto> profileOpt = userService.getUserProfile(userId);
 
+            UserProfileDto profileDto;
             if (profileOpt.isEmpty()) {
-                model.addAttribute("errorMessage", "Profile not found");
-                return "redirect:/profile/search";
+
+                profileDto = new UserProfileDto();
+                profileDto.setUserId(userId);
+
+            } else {
+                profileDto = profileOpt.get();
             }
 
             if (!userId.equals(currentUser.getId())) {
@@ -225,7 +229,7 @@ public class UserController {
             boolean canViewFullProfile = userId.equals(currentUser.getId()) ||
                     userService.canViewFullProfile(currentUser.getId());
 
-            model.addAttribute("profile", profileOpt.get());
+            model.addAttribute("profile", profileDto);
             model.addAttribute("user", user);
             model.addAttribute("canViewFullProfile", canViewFullProfile);
             model.addAttribute("isOwnProfile", userId.equals(currentUser.getId()));

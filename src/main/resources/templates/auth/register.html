@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Register')}">
+    <title>Register - Meetruly</title>
+    
+    <link th:href="@{/css/auth.css}" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Register', ~{::section})}">
+    <section>
+        
+        <div class="bg-gradient-primary text-white py-4 mb-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="fw-bold mb-1">Create Account</h1>
+                        <p class="lead mb-0">Join Meetruly and find your perfect match</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-wrapper">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <img th:src="@{/images/logo.svg}" alt="Meetruly Logo" class="auth-logo">
+                        <h2>Create Account</h2>
+                        <p>Join Meetruly and find your perfect match</p>
+                    </div>
+
+                    <div class="auth-body">
+                        
+                        <form class="auth-form" th:action="@{/auth/register}" method="post" th:object="${user}">
+
+                            
+                            <div th:if="${errorMessage}" class="alert alert-danger mb-4">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <span th:text="${errorMessage}">Error message</span>
+                            </div>
+
+                            
+                            <div class="form-group auth-input-group">
+                                <label for="username" class="form-label">Username</label>
+                                <i class="bi bi-person icon"></i>
+                                <input type="text" class="form-control" id="username" th:field="*{username}" placeholder="Choose a username" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username error</div>
+                            </div>
+
+                            
+                            <div class="form-group auth-input-group">
+                                <label for="email" class="form-label">Email</label>
+                                <i class="bi bi-envelope icon"></i>
+                                <input type="email" class="form-control" id="email" th:field="*{email}" placeholder="Enter your email" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Email error</div>
+                            </div>
+
+                            
+                            <div class="form-group">
+                                <label class="form-label">I am</label>
+                                <div class="gender-selector">
+                                    <label class="gender-option" id="genderMale">
+                                        <input type="radio" th:field="*{gender}" th:value="MALE" required>
+                                        <i class="bi bi-gender-male me-2"></i>Man
+                                    </label>
+                                    <label class="gender-option" id="genderFemale">
+                                        <input type="radio" th:field="*{gender}" th:value="FEMALE" required>
+                                        <i class="bi bi-gender-female me-2"></i>Woman
+                                    </label>
+                                    <label class="gender-option" id="genderOther">
+                                        <input type="radio" th:field="*{gender}" th:value="OTHER" required>
+                                        <i class="bi bi-person me-2"></i>Other
+                                    </label>
+                                </div>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}">Gender error</div>
+                            </div>
+
+                            
+                            <div class="form-group auth-input-group">
+                                <label for="password" class="form-label">Password</label>
+                                <i class="bi bi-lock icon"></i>
+                                <input type="password" class="form-control" id="password" th:field="*{password}" placeholder="Create a password" required>
+                                <i class="bi bi-eye password-toggle" id="togglePassword"></i>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error</div>
+
+                                
+                                <div class="password-strength mt-2">
+                                    <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                                </div>
+                                <small class="text-muted">Password must be at least 6 characters with at least one uppercase letter and one number</small>
+                            </div>
+
+                            
+                            <div class="form-group auth-input-group">
+                                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                <i class="bi bi-shield-lock icon"></i>
+                                <input type="password" class="form-control" id="confirmPassword" th:field="*{confirmPassword}" placeholder="Confirm your password" required>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">Confirm password error</div>
+                            </div>
+
+                            
+                            <div class="form-group mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="terms" required
+                                           oninvalid="this.setCustomValidity('Please accept the Terms of Service and Privacy Policy')"
+                                           onchange="this.setCustomValidity('')"
+                                           title="Please check this box to accept the Terms of Service and Privacy Policy">
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the <a href="#" class="text-primary">Terms of Service</a> and <a href="#" class="text-primary">Privacy Policy</a>
+                                    </label>
+                                </div>
+                            </div>
+
+                            
+                            <button type="submit" class="btn btn-primary btn-block mb-4">Create Account</button>
+                        </form>
+                    </div>
+
+                    <div class="auth-footer">
+                        <p class="mb-0">Already have an account? <a th:href="@{/auth/login}" class="text-primary fw-bold">Sign In</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                
+                const genderOptions = document.querySelectorAll('.gender-option');
+                const genderInputs = document.querySelectorAll('.gender-option input');
+
+                genderInputs.forEach(input => {
+                    if (input.checked) {
+                        input.parentElement.classList.add('selected');
+                    }
+
+                    input.addEventListener('change', function() {
+                        genderOptions.forEach(option => {
+                            option.classList.remove('selected');
+                        });
+                        if (this.checked) {
+                            this.parentElement.classList.add('selected');
+                        }
+                    });
+                });
+
+                
+                const togglePassword = document.getElementById('togglePassword');
+                const passwordInput = document.getElementById('password');
+
+                if (togglePassword && passwordInput) {
+                    togglePassword.addEventListener('click', function() {
+                        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                        passwordInput.setAttribute('type', type);
+
+                        
+                        this.classList.toggle('bi-eye');
+                        this.classList.toggle('bi-eye-slash');
+                    });
+                }
+
+                
+                const passwordStrengthBar = document.getElementById('passwordStrengthBar');
+
+                if (passwordInput && passwordStrengthBar) {
+                    passwordInput.addEventListener('input', function() {
+                        const password = this.value;
+                        let strength = 0;
+
+                        
+                        if (password.length >= 6) {
+                            strength += 1;
+                        }
+
+                        
+                        if (/[A-Z]/.test(password)) {
+                            strength += 1;
+                        }
+
+                        
+                        if (/[0-9]/.test(password)) {
+                            strength += 1;
+                        }
+
+                        
+                        passwordStrengthBar.className = 'password-strength-bar';
+
+                        if (strength === 1) {
+                            passwordStrengthBar.classList.add('password-strength-weak');
+                        } else if (strength === 2) {
+                            passwordStrengthBar.classList.add('password-strength-medium');
+                        } else if (strength === 3) {
+                            passwordStrengthBar.classList.add('password-strength-strong');
+                        }
+                    });
+                }
+
+                
+                const confirmPasswordInput = document.getElementById('confirmPassword');
+
+                if (passwordInput && confirmPasswordInput) {
+                    confirmPasswordInput.addEventListener('input', function() {
+                        if (this.value !== passwordInput.value) {
+                            this.setCustomValidity("Passwords don't match");
+                        } else {
+                            this.setCustomValidity('');
+                        }
+                    });
+
+                    passwordInput.addEventListener('input', function() {
+                        if (confirmPasswordInput.value !== this.value) {
+                            confirmPasswordInput.setCustomValidity("Passwords don't match");
+                        } else {
+                            confirmPasswordInput.setCustomValidity('');
+                        }
+                    });
+                }
+            });
+        </script>
+    </section>
+</div>
+
+
+<style>
+    
+    .bg-gradient-primary {
+        background-image: linear-gradient(135deg, #6f42c1, #0d6efd);
+    }
+
+    
+    .auth-wrapper {
+        padding: 2rem 1rem;
+    }
+
+    .auth-container {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .auth-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+
+    .auth-header {
+        text-align: center;
+        padding: 2rem 2rem 1rem;
+    }
+
+    .auth-logo {
+        max-width: 120px;
+        margin-bottom: 1.5rem;
+    }
+
+    .auth-body {
+        padding: 1rem 2rem 2rem;
+    }
+
+    .auth-footer {
+        text-align: center;
+        padding: 1.5rem;
+        background-color: #f8f9fa;
+        border-top: 1px solid #eee;
+    }
+
+    
+    .auth-input-group {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .auth-input-group .icon {
+        position: absolute;
+        top: 38px;
+        left: 15px;
+        color: #6c757d;
+    }
+
+    .auth-input-group .form-control {
+        padding-left: 45px;
+        height: 50px;
+    }
+
+    .auth-input-group .password-toggle {
+        position: absolute;
+        top: 38px;
+        right: 15px;
+        cursor: pointer;
+        color: #6c757d;
+    }
+
+    
+    .gender-selector {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }
+
+    .gender-option {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .gender-option:hover {
+        background-color: #f8f9fa;
+    }
+
+    .gender-option.selected {
+        background-color: #e9f2ff;
+        border-color: #0d6efd;
+        color: #0d6efd;
+    }
+
+    .gender-option input {
+        position: absolute;
+        opacity: 0;
+    }
+
+    
+    .password-strength {
+        height: 5px;
+        margin-bottom: 10px;
+    }
+
+    .password-strength-bar {
+        height: 100%;
+        width: 100%;
+        background-color: #e9ecef;
+        border-radius: 3px;
+    }
+
+    .password-strength-weak {
+        background-color: #dc3545;
+        width: 33.33%;
+    }
+
+    .password-strength-medium {
+        background-color: #ffc107;
+        width: 66.66%;
+    }
+
+    .password-strength-strong {
+        background-color: #28a745;
+        width: 100%;
+    }
+
+    
+    @media (max-width: 576px) {
+        .gender-selector {
+            flex-direction: column;
+        }
+    }
+</style>
+</body>
+</html>

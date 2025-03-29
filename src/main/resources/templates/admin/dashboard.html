@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Admin Dashboard')}">
+    <title>Admin Dashboard - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Admin Dashboard', ~{::section})}" class="admin-page">
+    <section>
+        
+        <div class="dashboard-hero bg-gradient-primary text-white py-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h1 class="display-5 fw-bold mb-3">Admin Dashboard</h1>
+                        <p class="lead">Manage your platform, users, and monitor activity.</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end d-flex flex-column justify-content-center align-items-lg-end">
+                        <div class="btn-group">
+                            <a th:href="@{/admin/users/pending}" class="btn btn-light mb-2">
+                                <i class="bi bi-person-plus"></i> Pending Users
+                                <span class="badge bg-danger ms-1" th:if="${stats.pendingApprovalUsers > 0}"
+                                      th:text="${stats.pendingApprovalUsers}">10</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-4">
+            <div class="container">
+                <div class="row g-4">
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted mb-4">Users</h5>
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="activity-icon bg-primary text-white">
+                                        <i class="bi bi-people-fill"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h2 class="mb-0 fw-bold" th:text="${stats.totalUsers}">12,345</h2>
+                                        <p class="text-muted mb-0">Total Users</p>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-6">
+                                        <p class="mb-1 small text-muted">Active</p>
+                                        <h5 class="fw-bold text-success" th:text="${stats.activeUsers}">10,123</h5>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="mb-1 small text-muted">Blocked</p>
+                                        <h5 class="fw-bold text-danger" th:text="${stats.blockedUsers}">223</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">New today: <span class="fw-bold" th:text="${stats.registrationsToday}">42</span></small>
+                                    <small class="text-muted">This month: <span class="fw-bold" th:text="${stats.registrationsThisMonth}">1,254</span></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted mb-4">Revenue</h5>
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="activity-icon bg-success text-white">
+                                        <i class="bi bi-currency-euro"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h2 class="mb-0 fw-bold" th:text="${#numbers.formatDecimal(stats.totalRevenue, 0, 'COMMA', 2, 'POINT') + ' €'}">42,351.25 €</h2>
+                                        <p class="text-muted mb-0">Total Revenue</p>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-6">
+                                        <p class="mb-1 small text-muted">This Month</p>
+                                        <h5 class="fw-bold text-success" th:text="${#numbers.formatDecimal(stats.revenueThisMonth, 0, 'COMMA', 2, 'POINT') + ' €'}">5,423.12 €</h5>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="mb-1 small text-muted">Growth</p>
+                                        <h5 class="fw-bold" th:classappend="${stats.growthPercentage >= 0 ? 'text-success' : 'text-danger'}"
+                                            th:text="${(stats.growthPercentage >= 0 ? '+' : '') + #numbers.formatDecimal(stats.growthPercentage, 1, 2) + '%'}">+12.5%</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0">
+                                <a th:href="@{/admin/revenue}" class="btn btn-sm btn-outline-success w-100">View Revenue Details</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted mb-4">Activity</h5>
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="activity-icon bg-info text-white">
+                                        <i class="bi bi-graph-up"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h2 class="mb-0 fw-bold" th:text="${stats.totalMessages}">532,129</h2>
+                                        <p class="text-muted mb-0">Total Messages</p>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-6">
+                                        <p class="mb-1 small text-muted">Matches</p>
+                                        <h5 class="fw-bold text-info" th:text="${stats.totalMatches}">45,231</h5>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="mb-1 small text-muted">Likes</p>
+                                        <h5 class="fw-bold text-info" th:text="${stats.totalLikes}">123,456</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">Messages today: <span class="fw-bold" th:text="${stats.messagesLast24Hours}">1,245</span></small>
+                                    <small class="text-muted">Likes today: <span class="fw-bold" th:text="${stats.likesLast24Hours}">2,514</span></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title text-muted mb-4">Reports</h5>
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="activity-icon bg-warning text-white">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h2 class="mb-0 fw-bold" th:text="${stats.totalReports}">1,253</h2>
+                                        <p class="text-muted mb-0">Total Reports</p>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <p class="mb-1 small text-muted">Pending Reports</p>
+                                        <h5 class="fw-bold text-warning" th:text="${stats.pendingReports}">42</h5>
+                                        <div class="progress mt-2" style="height: 5px;">
+                                            <div class="progress-bar bg-warning" role="progressbar"
+                                                 th:style="'width:' + ${stats.totalReports > 0 ? stats.pendingReports * 100 / stats.totalReports : 0} + '%'"
+                                                 aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-0">
+                                <a th:href="@{/admin/reports/pending}" class="btn btn-sm btn-outline-warning w-100">View Pending Reports</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-4">
+            <div class="container">
+                <h4 class="fw-bold mb-4">Subscription Plans Distribution</h4>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 border-end">
+                                        <div class="text-center py-3">
+                                            <h6 class="text-muted mb-2">FREE</h6>
+                                            <h2 class="fw-bold mb-0" th:text="${stats.subscriptionsByPlan.get('FREE')}">8,432</h2>
+                                            <p class="small text-muted">users</p>
+                                            <div class="progress mt-2" style="height: 6px;">
+                                                <div class="progress-bar bg-secondary" role="progressbar"
+                                                     th:style="'width:' + ${stats.subscriptionsByPlan.get('FREE') * 100 / stats.totalUsers} + '%'"
+                                                     aria-valuenow="70" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 border-end">
+                                        <div class="text-center py-3">
+                                            <h6 class="text-muted mb-2">SILVER</h6>
+                                            <h2 class="fw-bold mb-0" th:text="${stats.subscriptionsByPlan.get('SILVER')}">2,541</h2>
+                                            <p class="small text-muted">users</p>
+                                            <div class="progress mt-2" style="height: 6px;">
+                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                     th:style="'width:' + ${stats.subscriptionsByPlan.get('SILVER') * 100 / stats.totalUsers} + '%'"
+                                                     aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center py-3">
+                                            <h6 class="text-muted mb-2">GOLD</h6>
+                                            <h2 class="fw-bold mb-0" th:text="${stats.subscriptionsByPlan.get('GOLD')}">1,372</h2>
+                                            <p class="small text-muted">users</p>
+                                            <div class="progress mt-2" style="height: 6px;">
+                                                <div class="progress-bar bg-warning" role="progressbar"
+                                                     th:style="'width:' + ${stats.subscriptionsByPlan.get('GOLD') * 100 / stats.totalUsers} + '%'"
+                                                     aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-3">Revenue by Plan</h6>
+
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Silver</span>
+                                        <span class="fw-bold" th:text="${#numbers.formatDecimal(stats.revenueByPlan.get('SILVER'), 0, 'COMMA', 2, 'POINT') + ' €'}">25,410.00 €</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" role="progressbar"
+                                             th:style="'width:' + ${stats.revenueByPlan.get('SILVER') * 100 / stats.totalRevenue} + '%'"
+                                             aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Gold</span>
+                                        <span class="fw-bold" th:text="${#numbers.formatDecimal(stats.revenueByPlan.get('GOLD'), 0, 'COMMA', 2, 'POINT') + ' €'}">16,940.00 €</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-warning" role="progressbar"
+                                             th:style="'width:' + ${stats.revenueByPlan.get('GOLD') * 100 / stats.totalRevenue} + '%'"
+                                             aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center mt-4">
+                                    <a th:href="@{/admin/revenue}" class="btn btn-sm btn-outline-primary">View Detailed Report</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-4">
+            <div class="container">
+                <div class="row g-4">
+                    
+                    <div class="col-lg-6">
+                        <h4 class="fw-bold mb-4">Pending Approvals</h4>
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="bg-light">
+                                        <tr>
+                                            <th scope="col">User</th>
+                                            <th scope="col">Registered</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="user : ${stats.recentPendingUsers}">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img th:src="${user.profileImageUrl}" alt="Profile" class="rounded-circle" width="32" height="32">
+                                                    <div class="ms-3">
+                                                        <p class="mb-0 fw-bold" th:text="${user.username}">johndoe</p>
+                                                        <small class="text-muted" th:text="${user.email}">john@example.com</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted" th:text="${#temporals.format(user.createdAt, 'dd MMM yyyy, HH:mm')}">
+                                                    15 Mar 2023, 14:30
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex gap-2">
+                                                    <form th:action="@{/admin/users/{userId}/approve(userId=${user.id})}" method="post">
+                                                        <button type="submit" class="btn btn-sm btn-success">
+                                                            <i class="bi bi-check-lg"></i> Approve
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" th:data-bs-target="${'#rejectModal' + user.id}">
+                                                        <i class="bi bi-x-lg"></i> Reject
+                                                    </button>
+
+                                                    
+                                                    <div class="modal fade" th:id="${'rejectModal' + user.id}" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="rejectModalLabel">Reject User</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <form th:action="@{/admin/users/{userId}/reject(userId=${user.id})}" method="post">
+                                                                    <div class="modal-body">
+                                                                        <p>Are you sure you want to reject user <span class="fw-bold" th:text="${user.username}">johndoe</span>?</p>
+                                                                        <div class="mb-3">
+                                                                            <label for="rejectReason" class="form-label">Reason for rejection</label>
+                                                                            <textarea class="form-control" id="rejectReason" name="reason" rows="3" required></textarea>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                        <button type="submit" class="btn btn-danger">Reject User</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${stats.recentPendingUsers.isEmpty()}">
+                                            <td colspan="3" class="text-center py-4">
+                                                <p class="text-muted mb-0">No pending approvals at the moment.</p>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white text-center" th:if="${stats.pendingApprovalUsers > stats.recentPendingUsers.size()}">
+                                <a th:href="@{/admin/users/pending}" class="btn btn-sm btn-outline-primary">
+                                    View All Pending Users
+                                    <span class="badge bg-danger ms-1" th:text="${stats.pendingApprovalUsers}">10</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-lg-6">
+                        <h4 class="fw-bold mb-4">Recent Reports</h4>
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="bg-light">
+                                        <tr>
+                                            <th scope="col">Reported User</th>
+                                            <th scope="col">Type</th>
+                                            <th scope="col">Date</th>
+                                            <th scope="col">Action</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:each="report : ${stats.recentReports}">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img th:src="${report.reportedProfileImageUrl}" alt="Profile" class="rounded-circle" width="32" height="32">
+                                                    <div class="ms-3">
+                                                        <p class="mb-0 fw-bold" th:text="${report.reportedUsername}">user123</p>
+                                                        <small class="text-muted">Reported by
+                                                            <span th:text="${report.reporterUsername}">reporter456</span>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                   <span class="badge"
+                                                         th:with="reportTypeName=${report.reportType.name()}"
+                                                         th:classappend="${#strings.equals(reportTypeName, 'INAPPROPRIATE_CONTENT') ? 'bg-warning' :
+                       (#strings.equals(reportTypeName, 'HARASSMENT') ? 'bg-danger' :
+                       (#strings.equals(reportTypeName, 'FAKE_PROFILE') ? 'bg-info' :
+                       (#strings.equals(reportTypeName, 'SPAM') ? 'bg-secondary' :
+                       'bg-primary')))}"
+                                                         th:text="${#strings.replace(reportTypeName, '_', ' ')}">HARASSMENT</span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted" th:text="${#temporals.format(report.createdAt, 'dd MMM yyyy, HH:mm')}">
+                                                    15 Mar 2023, 14:30
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <a th:href="@{/admin/reports/{reportId}(reportId=${report.id})}" class="btn btn-sm btn-outline-primary">
+                                                    Review
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <tr th:if="${stats.recentReports.isEmpty()}">
+                                            <td colspan="4" class="text-center py-4">
+                                                <p class="text-muted mb-0">No pending reports at the moment.</p>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white text-center" th:if="${stats.pendingReports > stats.recentReports.size()}">
+                                <a th:href="@{/admin/reports/pending}" class="btn btn-sm btn-outline-primary">
+                                    View All Reports
+                                    <span class="badge bg-danger ms-1" th:text="${stats.pendingReports}">5</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-4 mb-4">
+            <div class="container">
+                <h4 class="fw-bold mb-4">Quick Actions</h4>
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <a th:href="@{/admin/users}" class="card border-0 shadow-sm h-100 text-decoration-none hover-card">
+                            <div class="card-body text-center py-4">
+                                <div class="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-people-fill text-primary fs-3"></i>
+                                </div>
+                                <h5 class="card-title">Manage Users</h5>
+                                <p class="card-text text-muted">View, search, and manage all user accounts.</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-md-3">
+                        <a th:href="@{/admin/blocks}" class="card border-0 shadow-sm h-100 text-decoration-none hover-card">
+                            <div class="card-body text-center py-4">
+                                <div class="bg-danger bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-shield-fill-x text-danger fs-3"></i>
+                                </div>
+                                <h5 class="card-title">User Blocks</h5>
+                                <p class="card-text text-muted">Manage blocked users and set block durations.</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-md-3">
+                        <a th:href="@{/admin/revenue}" class="card border-0 shadow-sm h-100 text-decoration-none hover-card">
+                            <div class="card-body text-center py-4">
+                                <div class="bg-success bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-graph-up-arrow text-success fs-3"></i>
+                                </div>
+                                <h5 class="card-title">Revenue Stats</h5>
+                                <p class="card-text text-muted">View detailed revenue statistics and reports.</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-md-3">
+                        <a th:href="@{/admin/audit-log}" class="card border-0 shadow-sm h-100 text-decoration-none hover-card">
+                            <div class="card-body text-center py-4">
+                                <div class="bg-info bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-list-check text-info fs-3"></i>
+                                </div>
+                                <h5 class="card-title">Audit Log</h5>
+                                <p class="card-text text-muted">View history of all administrative actions.</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    
+    .hover-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .activity-icon {
+        width: 50px;
+        height: 50px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+    });
+</script>
+</body>
+</html>

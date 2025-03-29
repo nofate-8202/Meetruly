@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Matching Dashboard')}">
+    <title>Matching Dashboard - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Matching', ~{::section})}" class="matching-page">
+    <section>
+        
+        <div class="dashboard-hero bg-gradient-primary text-white py-5">
+            <div class="container py-4">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h1 class="display-5 fw-bold mb-3">Matching Dashboard</h1>
+                        <p class="lead">Discover your connections and matches.</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end d-flex flex-column justify-content-center align-items-lg-end">
+                        <a th:href="@{/profile/search}" class="btn btn-light btn-lg mb-2">Find New Matches</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-5">
+            <div class="container py-4">
+                <h2 class="fw-bold mb-4">Your Matching Activity</h2>
+
+                <div class="row g-4">
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card border-0 shadow-sm h-100 dashboard-card">
+                            <div class="card-body text-center">
+                                <div class="activity-icon bg-primary text-white mb-3">
+                                    <i class="bi bi-heart-fill"></i>
+                                </div>
+                                <h3 class="h5 fw-bold">Likes Received</h3>
+                                <p class="display-6 fw-bold mb-1" th:text="${summary.totalLikesReceived}">24</p>
+                                <p class="text-muted mb-0" th:text="${summary.unviewedLikes} + ' unviewed'">3 unviewed</p>
+                                <a th:href="@{/matching/likes/received}" class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card border-0 shadow-sm h-100 dashboard-card">
+                            <div class="card-body text-center">
+                                <div class="activity-icon bg-success text-white mb-3">
+                                    <i class="bi bi-people-fill"></i>
+                                </div>
+                                <h3 class="h5 fw-bold">Matches</h3>
+                                <p class="display-6 fw-bold mb-1" th:text="${summary.totalMatches}">8</p>
+                                <p class="text-muted mb-0" th:text="${summary.unviewedMatches} + ' unviewed'">1 unviewed</p>
+                                <a th:href="@{/matching/matches}" class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card border-0 shadow-sm h-100 dashboard-card">
+                            <div class="card-body text-center">
+                                <div class="activity-icon bg-info text-white mb-3">
+                                    <i class="bi bi-hand-thumbs-up-fill"></i>
+                                </div>
+                                <h3 class="h5 fw-bold">Likes Sent</h3>
+                                <p class="display-6 fw-bold mb-1" th:text="${summary.totalLikesGiven}">12</p>
+                                <p class="text-muted mb-0">Express Interest</p>
+                                <a th:href="@{/matching/likes/sent}" class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card border-0 shadow-sm h-100 dashboard-card">
+                            <div class="card-body text-center">
+                                <div class="activity-icon bg-warning text-white mb-3">
+                                    <i class="bi bi-eye-fill"></i>
+                                </div>
+                                <h3 class="h5 fw-bold">Profile Views</h3>
+                                <p class="display-6 fw-bold mb-1" th:text="${summary.totalProfileViews}">37</p>
+                                <p class="text-muted mb-0">Who's interested</p>
+                                <a th:href="@{/matching/profile-views}" class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-5">
+            <div class="container py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold mb-0">Today's Suggestions</h2>
+                    <a th:href="@{/matching/daily-suggestions}" class="btn btn-outline-primary">View All</a>
+                </div>
+
+                <div class="row g-4">
+                    
+                    <div class="col-md-6 col-lg-3" th:each="profile : ${summary.dailySuggestions}">
+                        <div class="card profile-card h-100 border-0 shadow-sm">
+                            <div class="position-relative">
+                                <img th:src="${profile.profileImageUrl != null ? profile.profileImageUrl : '/images/default-profile.jpg'}"
+                                     alt="Profile" class="card-img-top profile-img">
+                                <div class="compatibility-badge bg-primary text-white" th:text="${#numbers.formatDecimal(profile.compatibilityScore, 0, 0)} + '% Match'">93% Match</div>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title mb-1" th:text="${profile.username} + ', ' + ${profile.age}">Jane Doe, 28</h5>
+                                <p class="card-text text-muted mb-3">
+                                    <i class="bi bi-geo-alt-fill"></i> <span th:text="${profile.city != null ? profile.city : 'Unknown'}">New York City</span>
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-primary flex-grow-1"
+                                            th:classappend="${profile.isLiked ? 'active' : ''}"
+                                            th:data-user-id="${profile.userId}"
+                                            onclick="likeUser(this.getAttribute('data-user-id'), this)">
+                                        <i class="bi" th:classappend="${profile.isLiked ? 'bi-heart-fill' : 'bi-heart'}"></i>
+                                        <span th:text="${profile.isLiked ? 'Liked' : 'Like'}">Like</span>
+                                    </button>
+                                    <a th:href="@{'/profile/' + ${profile.userId}}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                        <i class="bi bi-person"></i> View
+                                    </a>
+                                    <a th:href="@{'/chat/new/' + ${profile.userId}}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-chat"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-12 text-center py-5" th:if="${summary.dailySuggestions == null || summary.dailySuggestions.isEmpty()}">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill me-2"></i> No suggestions available today. Check back tomorrow!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-5">
+            <div class="container py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold mb-0">Top Profiles</h2>
+                    <a th:href="@{/matching/top-users}" class="btn btn-outline-primary">View All</a>
+                </div>
+
+                <div class="row g-4">
+                    
+                    <div class="col-md-6 col-lg-3" th:each="profile : ${summary.topLikedUsers}">
+                        <div class="card profile-card h-100 border-0 shadow-sm">
+                            <img th:src="${profile.profileImageUrl != null ? profile.profileImageUrl : '/images/default-profile.jpg'}"
+                                 alt="Profile" class="card-img-top profile-img">
+                            <div class="card-body">
+                                <h5 class="card-title mb-1" th:text="${profile.username} + ', ' + ${profile.age}">John Doe, 32</h5>
+                                <p class="card-text text-muted mb-3">
+                                    <i class="bi bi-geo-alt-fill"></i> <span th:text="${profile.city != null ? profile.city : 'Unknown'}">Los Angeles</span>
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-primary flex-grow-1"
+                                            th:classappend="${profile.isLiked ? 'active' : ''}"
+                                            th:data-user-id="${profile.userId}"
+                                            onclick="likeUser(this.getAttribute('data-user-id'), this)">
+                                        <i class="bi" th:classappend="${profile.isLiked ? 'bi-heart-fill' : 'bi-heart'}"></i>
+                                        <span th:text="${profile.isLiked ? 'Liked' : 'Like'}">Like</span>
+                                    </button>
+                                    <a th:href="@{'/profile/' + ${profile.userId}}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                        <i class="bi bi-person"></i> View
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-12 text-center py-5" th:if="${summary.topLikedUsers == null || summary.topLikedUsers.isEmpty()}">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill me-2"></i> No top profiles available yet.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<script th:inline="javascript">
+    function likeUser(userId, button) {
+        const isLiked = button.classList.contains('active');
+        const url = isLiked ?
+            /*[[@{/matching/like/}]]*/'/matching/like/' + userId :
+            /*[[@{/matching/like/}]]*/'/matching/like/' + userId;
+
+        const method = isLiked ? 'DELETE' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    
+                    if (isLiked) {
+                        button.classList.remove('active');
+                        button.querySelector('i').classList.replace('bi-heart-fill', 'bi-heart');
+                        button.querySelector('span').innerText = 'Like';
+                    } else {
+                        button.classList.add('active');
+                        button.querySelector('i').classList.replace('bi-heart', 'bi-heart-fill');
+                        button.querySelector('span').innerText = 'Liked';
+                    }
+                    return response.json();
+                } else {
+                    throw new Error('Failed to process like');
+                }
+            })
+            .then(data => {
+                console.log('Operation successful:', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                showNotification('Error', 'Failed to process like action. Please try again.', 'error');
+            });
+    }
+
+    function showNotification(title, message, type) {
+        
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type} shadow`;
+
+        notification.innerHTML = `
+        <div class="notification-header">
+            <h5 class="notification-title">${title}</h5>
+            <span class="notification-close">&times;</span>
+        </div>
+        <div class="notification-body">
+            ${message}
+        </div>
+    `;
+
+        
+        document.body.appendChild(notification);
+
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+
+        
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        });
+
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 5000);
+    }
+</script>
+</body>
+</html>

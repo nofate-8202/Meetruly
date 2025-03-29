@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Admin - User Blocks')}">
+    <title>Admin - User Blocks</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Admin - User Blocks', ~{::section})}" class="admin-page">
+    <section>
+        
+        <div class="dashboard-hero bg-gradient-primary text-white py-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h1 class="display-5 fw-bold mb-3">User Blocks</h1>
+                        <p class="lead">Manage blocked users and view block history.</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end d-flex flex-column justify-content-center align-items-lg-end">
+                        <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
+                            <form th:action="@{/admin/blocks/process-expired}" method="post">
+                                <button type="submit" class="btn btn-light mb-2">
+                                    <i class="bi bi-check-circle"></i> Process Expired Blocks
+                                </button>
+                            </form>
+                            <a th:href="@{/admin/dashboard}" class="btn btn-outline-light mb-2">
+                                <i class="bi bi-speedometer2"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-4">
+            <div class="container">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Active Blocks</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                <tr>
+                                    <th scope="col">User</th>
+                                    <th scope="col">Blocked By</th>
+                                    <th scope="col">Block Type</th>
+                                    <th scope="col">Start Date</th>
+                                    <th scope="col">End Date</th>
+                                    <th scope="col">Reason</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="block : ${blocks}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img th:src="${block.blockedProfileImageUrl}" alt="Profile" class="rounded-circle" width="40" height="40">
+                                            <div class="ms-3">
+                                                <p class="mb-0 fw-bold" th:text="${block.blockedUsername}">blockedUser</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-dark" th:text="${block.blockedByUsername}">adminUser</span>
+                                    </td>
+                                    <td>
+                                            <span class="badge" th:classappend="${block.permanent ? 'bg-danger' : 'bg-warning'}"
+                                                  th:text="${block.permanent ? 'Permanent' : 'Temporary'}">Temporary</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted" th:text="${#temporals.format(block.startDate, 'dd MMM yyyy, HH:mm')}">
+                                            15 Mar 2023, 14:30
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted" th:text="${block.permanent ? '∞' : #temporals.format(block.endDate, 'dd MMM yyyy, HH:mm')}">
+                                            22 Mar 2023, 14:30
+                                        </small>
+                                        <div th:if="${!block.permanent && block.remainingDays >= 0}" class="small text-danger"
+                                             th:text="${block.remainingDays + ' days left'}">7 days left</div>
+                                        <div th:if="${!block.permanent && block.remainingDays < 0}" class="small text-danger">Expired</div>
+                                    </td>
+                                    <td>
+                                            <span class="d-inline-block text-truncate" style="max-width: 150px;" th:text="${block.reason}"
+                                                  data-bs-toggle="tooltip" th:title="${block.reason}">
+                                                Inappropriate behavior and multiple reports from users...
+                                            </span>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                                                th:data-bs-target="${'#unblockModal' + block.id}">
+                                            <i class="bi bi-unlock"></i> Unblock
+                                        </button>
+
+                                        
+                                        <div class="modal fade" th:id="${'unblockModal' + block.id}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Unblock User</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form th:action="@{/admin/blocks/{blockId}/unblock(blockId=${block.id})}" method="post">
+                                                        <div class="modal-body">
+                                                            <p>Are you sure you want to unblock <span class="fw-bold" th:text="${block.blockedUsername}">blockedUser</span>?</p>
+                                                            <div class="mb-3">
+                                                                <label for="unblockReason" class="form-label">Reason for unblocking</label>
+                                                                <textarea class="form-control" id="unblockReason" name="reason" rows="3" required></textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-primary">Unblock User</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${blocks.isEmpty()}">
+                                    <td colspan="7" class="text-center py-4">
+                                        <div class="py-5">
+                                            <i class="bi bi-shield-check text-success fs-1 d-block mb-3"></i>
+                                            <h5>No Active Blocks</h5>
+                                            <p class="text-muted mb-0">There are no actively blocked users at the moment.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-white py-3" th:if="${totalPages > 1}">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                                    <a class="page-link" th:href="@{/admin/blocks(page=${currentPage - 1})}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                                    th:classappend="${pageNum == currentPage ? 'active' : ''}">
+                                    <a class="page-link" th:href="@{/admin/blocks(page=${pageNum})}" th:text="${pageNum + 1}">1</a>
+                                </li>
+                                <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                                    <a class="page-link" th:href="@{/admin/blocks(page=${currentPage + 1})}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-white py-4">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="mb-3">About User Blocking</h5>
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle-fill me-2"></i>
+                                    <strong>Automatic Processing:</strong> The system automatically processes expired blocks once a day. You can also manually trigger this process using the "Process Expired Blocks" button.
+                                </div>
+
+                                <p>When a user is blocked:</p>
+                                <ul>
+                                    <li>They are unable to log in to their account</li>
+                                    <li>Their profiles become invisible to other users</li>
+                                    <li>Any existing conversations are temporarily hidden</li>
+                                    <li>They receive an email notification about the block with the reason provided</li>
+                                </ul>
+
+                                <p>Blocks can be either:</p>
+                                <div class="d-flex mb-3">
+                                    <div class="me-3">
+                                        <span class="badge bg-warning d-block p-2 mb-2">Temporary</span>
+                                        <small class="text-muted">Set for a specific duration</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-danger d-block p-2 mb-2">Permanent</span>
+                                        <small class="text-muted">No expiration date, requires manual unblocking</small>
+                                    </div>
+                                </div>
+
+                                <p class="mb-0">When unblocking a user, please provide a detailed reason that will be included in the email notification sent to the user.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    
+    .table th, .table td {
+        padding: 0.75rem 1rem;
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+    }
+
+    
+    .tooltip {
+        font-size: 0.875rem;
+    }
+</style>
+
+<script>
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('My Matches')}">
+    <title>My Matches - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Matching', ~{::section})}" class="matching-page">
+    <section>
+        
+        <div class="dashboard-hero bg-gradient-primary text-white py-4">
+            <div class="container py-3">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h1 class="display-5 fw-bold mb-2">My Matches</h1>
+                        <p class="lead">Connect with people who match with you</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end d-flex flex-column justify-content-center align-items-lg-end">
+                        <a th:href="@{/matching}" class="btn btn-light">Back to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-5">
+            <div class="container py-4">
+                <div class="row g-4">
+                    
+                    <div class="col-12 text-center py-5" th:if="${matches == null || matches.isEmpty()}">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill me-2"></i> You don't have any matches yet. Like more profiles to get matches!
+                            <a th:href="@{/profile/search}" class="btn btn-primary btn-sm ms-2">Find Profiles</a>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-md-6 col-lg-4" th:each="match : ${matches}">
+                        <div class="card profile-card h-100 border-0 shadow-sm">
+                            <div class="position-relative">
+                                <img th:src="${match.otherProfileImageUrl != null ? match.otherProfileImageUrl : '/images/default-profile.jpg'}"
+                                     alt="Profile" class="card-img-top profile-img">
+                                <div class="compatibility-badge bg-primary text-white"
+                                     th:text="${#numbers.formatDecimal(match.compatibilityScore, 0, 0)} + '% Match'">93% Match</div>
+                                <div class="badge bg-success position-absolute top-0 start-0 m-2"
+                                     th:if="${match.matchType.name() == 'MUTUAL_LIKE'}">Mutual Like</div>
+                                <div class="badge bg-info position-absolute top-0 start-0 m-2"
+                                     th:if="${match.matchType.name() == 'DAILY_SUGGESTION'}">Daily Match</div>
+                                <div class="badge bg-warning position-absolute top-0 start-0 m-2"
+                                     th:if="${!match.viewed}">New</div>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title mb-1" th:text="${match.otherUsername}">Jane Doe</h5>
+                                <p class="text-muted mb-3" th:text="${#temporals.format(match.createdAt, 'dd MMM yyyy')}">Matched on 01 Jan 2023</p>
+                                <div class="d-flex gap-2">
+                                    <a th:href="@{'/chat/new/' + ${match.otherUserId}}" class="btn btn-sm btn-primary flex-grow-1">
+                                        <i class="bi bi-chat-dots-fill"></i> Message
+                                    </a>
+                                    <a th:href="@{'/profile/' + ${match.otherUserId}}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                        <i class="bi bi-person"></i> View Profile
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <nav th:if="${totalPages > 1}" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/matching/matches(page=${currentPage - 1})}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${currentPage == i ? 'active' : ''}">
+                            <a class="page-link" th:href="@{/matching/matches(page=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                            <a class="page-link" th:href="@{/matching/matches(page=${currentPage + 1})}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<script th:inline="javascript">
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const unviewedMatches = document.querySelectorAll('.badge.bg-warning');
+
+        unviewedMatches.forEach(badge => {
+            const card = badge.closest('.card');
+            const matchId = card.getAttribute('data-match-id');
+
+            if (matchId) {
+                markMatchAsViewed(matchId);
+            }
+        });
+    });
+
+    function markMatchAsViewed(matchId) {
+        fetch(/*[[@{/matching/matches/}]]*/ '/matching/matches/' + matchId + '/viewed', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Match marked as viewed:', matchId);
+                } else {
+                    console.error('Failed to mark match as viewed:', matchId);
+                }
+            })
+            .catch(error => {
+                console.error('Error marking match as viewed:', error);
+            });
+    }
+</script>
+</body>
+</html>

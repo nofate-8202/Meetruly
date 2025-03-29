@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Admin - Report Details')}">
+    <title>Admin - Report Details</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Admin - Report Details', ~{::section})}" class="admin-page">
+    <section>
+        
+        <div class="dashboard-hero bg-gradient-primary text-white py-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h1 class="display-5 fw-bold mb-3">Report Details</h1>
+                        <p class="lead">Review and handle the user report.</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end d-flex flex-column justify-content-center align-items-lg-end">
+                        <a th:href="@{/admin/reports/pending}" class="btn btn-light mb-2">
+                            <i class="bi bi-arrow-left"></i> Back to Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="bg-light py-4">
+            <div class="container">
+                <div class="row g-4">
+                    
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="mb-0">Report Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row align-items-center mb-4">
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center">
+                                            <img th:src="${report.reportedProfileImageUrl}" alt="Profile" class="rounded-circle" width="64" height="64">
+                                            <div class="ms-3">
+                                                <p class="mb-0 fw-bold fs-5" th:text="${report.reportedUsername}">reportedUser</p>
+                                                <span class="badge bg-danger">Reported User</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mt-3 mt-md-0">
+                                        <div class="d-flex align-items-center">
+                                            <img th:src="${report.reporterProfileImageUrl}" alt="Profile" class="rounded-circle" width="64" height="64">
+                                            <div class="ms-3">
+                                                <p class="mb-0 fw-bold fs-5" th:text="${report.reporterUsername}">reporterUser</p>
+                                                <span class="badge bg-info">Reporter</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <p class="text-muted mb-1">Report Type</p>
+                                        <p class="mb-0">
+                                            <span class="badge"
+                                                  th:with="reportTypeName=${report.reportType.name()}"
+                                                  th:classappend="${#strings.equals(reportTypeName, 'INAPPROPRIATE_CONTENT') ? 'bg-warning' :
+                      (#strings.equals(reportTypeName, 'HARASSMENT') ? 'bg-danger' :
+                      (#strings.equals(reportTypeName, 'FAKE_PROFILE') ? 'bg-info' :
+                      (#strings.equals(reportTypeName, 'SPAM') ? 'bg-secondary' :
+                      'bg-primary')))}"
+                                                  th:text="${#strings.replace(reportTypeName, '_', ' ')}">HARASSMENT</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="text-muted mb-1">Report Date</p>
+                                        <p class="mb-0" th:text="${#temporals.format(report.createdAt, 'dd MMM yyyy, HH:mm')}">15 Mar 2023, 14:30</p>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <p class="text-muted mb-1">Report Reason</p>
+                                    <div class="p-3 bg-light rounded">
+                                        <p class="mb-0" th:text="${report.reportReason}">
+                                            This user has been sending inappropriate messages and harassing me for the past week.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <p class="text-muted mb-2">Current Status</p>
+                                    <span class="badge bg-warning p-2" th:text="${report.status}">PENDING</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Reported User Information</h5>
+                                <a th:href="@{/profile/{userId}(userId=${report.reportedUserId})}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View Full Profile
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                
+                                
+                                <div class="alert alert-info mb-3">
+                                    <i class="bi bi-info-circle-fill me-2"></i>
+                                    This section would display more detailed information about the reported user to help with the investigation.
+                                </div>
+
+                                <div class="d-flex justify-content-end mt-4">
+                                    <a href="#" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#blockUserModal">
+                                        <i class="bi bi-shield-fill-x"></i> Block User
+                                    </a>
+                                    <a th:href="@{/admin/users/{userId}(userId=${report.reportedUserId})}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-person-fill"></i> Manage User
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="mb-0">Handle Report</h5>
+                            </div>
+                            <div class="card-body">
+                                <form th:action="@{/admin/reports/{reportId}/handle(reportId=${report.id})}" method="post" th:object="${reportAction}">
+                                    <div class="mb-3">
+                                        <label for="status" class="form-label">Change Status</label>
+                                        <select class="form-select" id="status" name="status" required>
+                                            <option value="">Select status</option>
+                                            <option th:each="statusOption : ${reportStatuses}"
+                                                    th:value="${statusOption}"
+                                                    th:text="${statusOption}"
+                                                    th:selected="${statusOption == report.status}">APPROVED</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="adminNotes" class="form-label">Admin Notes</label>
+                                        <textarea class="form-control" id="adminNotes" name="adminNotes" rows="4" required
+                                                  placeholder="Add your notes about this report..."></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="blockUser" name="blockUser" onchange="toggleBlockOptions(this)">
+                                            <label class="form-check-label" for="blockUser">
+                                                Block Reported User
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div id="blockOptions" class="mb-3 d-none">
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="permanentBlock" id="temporaryBlock" value="false" checked onchange="toggleDurationField(this)">
+                                                <label class="form-check-label" for="temporaryBlock">
+                                                    Temporary Block
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="permanentBlock" id="permanentBlock" value="true" onchange="toggleDurationField(this)">
+                                                <label class="form-check-label" for="permanentBlock">
+                                                    Permanent Block
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3" id="durationField">
+                                            <label for="blockDurationDays" class="form-label">Block Duration (days)</label>
+                                            <input type="number" class="form-control" id="blockDurationDays" name="blockDurationDays" min="1" value="7">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="blockReason" class="form-label">Block Reason</label>
+                                            <textarea class="form-control" id="blockReason" name="blockReason" rows="2"></textarea>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary w-100">Submit Report Action</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="modal fade" id="blockUserModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Block User</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form th:action="@{/admin/users/{userId}/block(userId=${report.reportedUserId})}" method="post">
+                        <div class="modal-body">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <strong>Warning:</strong> Blocking a user will prevent them from accessing their account until unblocked.
+                            </div>
+                            <p>Are you sure you want to block <span class="fw-bold" th:text="${report.reportedUsername}">reportedUser</span>?</p>
+                            <div class="mb-3">
+                                <label for="blockReasonModal" class="form-label">Reason for blocking</label>
+                                <textarea class="form-control" id="blockReasonModal" name="reason" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="permanent" id="temporaryBlockModal" value="false" checked onchange="toggleDurationFieldModal(this)">
+                                    <label class="form-check-label" for="temporaryBlockModal">
+                                        Temporary Block
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="permanent" id="permanentBlockModal" value="true" onchange="toggleDurationFieldModal(this)">
+                                    <label class="form-check-label" for="permanentBlockModal">
+                                        Permanent Block
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3" id="durationFieldModal">
+                                <label for="durationDaysModal" class="form-label">Block Duration (days)</label>
+                                <input type="number" class="form-control" id="durationDaysModal" name="durationDays" min="1" value="7" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Block User</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    
+    .sticky-top {
+        position: sticky;
+        top: 20px;
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+    }
+</style>
+
+<script>
+    
+    function toggleBlockOptions(checkbox) {
+        const blockOptions = document.getElementById('blockOptions');
+        if (checkbox.checked) {
+            blockOptions.classList.remove('d-none');
+            document.getElementById('blockReason').setAttribute('required', 'required');
+        } else {
+            blockOptions.classList.add('d-none');
+            document.getElementById('blockReason').removeAttribute('required');
+        }
+    }
+
+    
+    function toggleDurationField(input) {
+        const durationField = document.getElementById('durationField');
+        const durationInput = document.getElementById('blockDurationDays');
+
+        if (input.value === 'true') { 
+            durationField.style.display = 'none';
+            durationInput.removeAttribute('required');
+        } else { 
+            durationField.style.display = 'block';
+            durationInput.setAttribute('required', 'required');
+        }
+    }
+
+    
+    function toggleDurationFieldModal(input) {
+        const durationField = document.getElementById('durationFieldModal');
+        const durationInput = document.getElementById('durationDaysModal');
+
+        if (input.value === 'true') { 
+            durationField.style.display = 'none';
+            durationInput.removeAttribute('required');
+        } else { 
+            durationField.style.display = 'block';
+            durationInput.setAttribute('required', 'required');
+        }
+    }
+
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const existingNotes = document.getElementById('existingAdminNotes');
+        if (existingNotes) {
+            document.getElementById('adminNotes').value = existingNotes.textContent;
+        }
+    });
+</script>
+</body>
+</html>

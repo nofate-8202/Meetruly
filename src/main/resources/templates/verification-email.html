@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email - Meetruly</title>
+    <style>
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .email-header {
+            background: linear-gradient(to right, #FF4B8B, #FF6B8B);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .email-header img {
+            max-width: 160px;
+            height: auto;
+        }
+
+        .email-body {
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        p {
+            margin-bottom: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #6f42c1, #0d6efd);
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 12px 30px;
+            border-radius: 50px;
+            margin: 20px 0;
+        }
+
+        .button:hover {
+            background: linear-gradient(to right, #E43375, #FF4B8B);
+        }
+
+        .verification-code {
+            display: inline-block;
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            background-color: #f0f0f0;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .social-links {
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            margin: 0 10px;
+            text-decoration: none;
+        }
+
+        .social-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .link-info {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 20px;
+        }
+
+        @media screen and (max-width: 600px) {
+            .email-container {
+                width: 100%;
+                border-radius: 0;
+            }
+
+            .email-header, .email-body, .email-footer {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="email-header">
+        <img th:src="${baseUrl} + '/images/logo1.svg'" src="https://com.meetruly/images/logo1.svg" alt="Meetruly Logo" style="max-width: 160px; height: auto;">
+    </div>
+
+    <div class="email-body">
+        <h1>Verify Your Email Address</h1>
+
+        <p>Hi <span th:text="${username}">username</span>,</p>
+
+        <p>Thanks for signing up for Meetruly! We're excited to have you on board.</p>
+
+        <p>To complete your registration and start finding meaningful connections, please verify your email address by clicking the button below:</p>
+
+        <a th:href="${verificationUrl}" href="https://example.com/verify" style="display: inline-block; background: linear-gradient(to right, #FF4B8B, #FF6B8B); color: white !important; text-decoration: none; font-weight: bold; padding: 12px 30px; border-radius: 50px; margin: 20px 0; font-family: Arial, sans-serif;">Verify Email Address</a>
+
+        <p class="link-info">If the button doesn't work, you can copy and paste the following link into your browser:</p>
+
+        <p style="word-break: break-all; font-size: 0.85em; color: #6c757d;" th:text="${verificationUrl}">https://meetruly.com/auth/verify-email/confirm?token=abc123</p>
+
+        <p>This link will expire in 24 hours.</p>
+
+        <p>If you did not create an account with Meetruly, you can safely ignore this email.</p>
+    </div>
+
+    <div class="email-footer">
+        <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2025</span> Meetruly. All rights reserved.</p>
+
+        <p>Our mailing address:<br>123 Dating Street, Love City, LC 12345</p>
+
+        <div class="social-links">
+            <a href="https://facebook.com" target="_blank"><img src="cid:facebook-icon" alt="Facebook" class="social-icon"></a>
+            <a href="https://twitter.com" target="_blank"><img src="cid:twitter-icon" alt="Twitter" class="social-icon"></a>
+            <a href="https://instagram.com" target="_blank"><img src="cid:instagram-icon" alt="Instagram" class="social-icon"></a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

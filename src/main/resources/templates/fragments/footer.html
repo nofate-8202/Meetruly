@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<footer th:fragment="footer" class="footer mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4 mb-md-0">
+                <div class="footer-logo mb-3" style="min-height: 80px;">
+                    <img th:src="@{/images/logo.svg}" alt="Meetruly Logo" style="height: 80px; width: auto; min-width: 160px;">
+                </div>
+                <p class="text-white-50">Meetruly is a dating application that helps you find true and meaningful connections.</p>
+            </div>
+
+            <div class="col-md-2 mb-4 mb-md-0">
+                <h5 class="text-white mb-3">Links</h5>
+                <ul class="footer-links">
+                    <li><a th:href="@{/}">Home</a></li>
+                    <li><a th:href="@{/about}">About</a></li>
+                    <li><a th:href="@{/subscription/plans}">Plans</a></li>
+                    <li><a th:href="@{/contact}">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-2 mb-4 mb-md-0">
+                <h5 class="text-white mb-3">Account</h5>
+                <ul class="footer-links">
+                    <li><a th:href="@{/auth/login}">Login</a></li>
+                    <li><a th:href="@{/auth/register}">Register</a></li>
+                    <li><a th:href="@{/auth/forgot-password}">Forgot Password</a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-4">
+                <h5 class="text-white mb-3">Contact Us</h5>
+                <p class="text-white-50 mb-3">Subscribe to our newsletter to receive news and updates.</p>
+                <form class="d-flex">
+                    <input type="email" class="form-control" placeholder="Your email">
+                    <button type="submit" class="btn btn-primary ms-2">Send</button>
+                </form>
+            </div>
+        </div>
+
+        <hr class="mt-4 mb-4" style="border-color: rgba(255,255,255,0.1);">
+
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                <p class="text-white-50 mb-0">© 2025 Meetruly. All rights reserved.</p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <a href="#" class="text-white-50 me-3">Privacy Policy</a>
+                <a href="#" class="text-white-50 me-3">Terms of Service</a>
+                <a href="#" class="text-white-50">Cookie Policy</a>
+            </div>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

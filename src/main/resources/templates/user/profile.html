@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('My Profile')}">
+    <title>My Profile - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('My Profile', ~{::section})}" class="profile-page">
+    <section>
+        <div class="container py-5">
+            
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <span th:text="${successMessage}">Success message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <span th:text="${errorMessage}">Error message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="row">
+                
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-0">
+                            <div class="profile-header bg-gradient-primary text-center text-white p-4">
+                                <div class="profile-img-container mb-3">
+                                    <img th:if="${profile.profileImageUrl != null && !#strings.isEmpty(profile.profileImageUrl)}"
+                                         th:src="${profile.profileImageUrl}"
+                                         alt="Profile Image" class="profile-img rounded-circle">
+                                    <img th:unless="${profile.profileImageUrl != null && !#strings.isEmpty(profile.profileImageUrl)}"
+                                         th:src="@{/images/default-profile.jpg}"
+                                         alt="Default Profile" class="profile-img rounded-circle">
+                                    <div class="profile-img-overlay">
+                                        <button type="button" class="btn btn-sm btn-light rounded-circle"
+                                                data-bs-toggle="modal" data-bs-target="#uploadImageModal">
+                                            <i class="bi bi-camera-fill"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <h4 class="fw-bold mb-1" sec:authentication="name">Username</h4>
+                                <p class="mb-0" th:if="${profile.firstName != null && profile.lastName != null}">
+                                    <span th:text="${profile.firstName}">First</span> <span th:text="${profile.lastName}">Last</span>
+                                </p>
+                                <p class="mb-0" th:if="${profile.age != null}">
+                                    <span th:text="${profile.age}">30</span> years old
+                                </p>
+                                <p class="mb-2" th:if="${profile.city != null}">
+                                    <i class="bi bi-geo-alt-fill"></i> <span th:text="${profile.city.displayName}">City</span>
+                                </p>
+
+                                <div class="d-flex justify-content-center">
+                                    <span class="badge bg-warning text-dark me-2">Free Plan</span>
+                                    <a th:href="@{/subscription/plans}" class="badge bg-light text-primary">Upgrade</a>
+                                </div>
+                            </div>
+
+                            <div class="profile-stats p-4">
+                                <div class="row text-center g-0">
+                                    <div class="col-4">
+                                        <div class="p-3">
+                                            <h5 class="fw-bold mb-0">24</h5>
+                                            <small class="text-muted">Likes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">
+                                            <h5 class="fw-bold mb-0">8</h5>
+                                            <small class="text-muted">Matches</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-3">
+                                            <h5 class="fw-bold mb-0">37</h5>
+                                            <small class="text-muted">Views</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-0">
+
+                            <div class="profile-completion p-4">
+                                <h6 class="fw-bold mb-2">Profile Completion</h6>
+                                <div class="progress mb-2" style="height: 8px;">
+                                    <div class="progress-bar bg-primary" role="progressbar"
+                                         th:style="${'width: ' + (isNewProfile ? '5' : '75') + '%'}"
+                                         th:aria-valuenow="${isNewProfile ? 5 : 75}"
+                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <small>Complete your profile for better matches</small>
+                                    <small th:text="${isNewProfile ? '5%' : '75%'}">75%</small>
+                                </div>
+                            </div>
+
+                            <div class="p-4">
+                                <a th:href="@{/matching}" class="btn btn-primary w-100 mb-3">
+                                    <i class="bi bi-heart-fill me-2"></i> View Matches
+                                </a>
+                                <a th:href="@{/chat}" class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-chat-dots-fill me-2"></i> My Messages
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white p-4 border-0">
+                            <h4 class="fw-bold mb-0">Profile Information</h4>
+                            <p class="text-muted mb-0">Update your personal details</p>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <form th:action="@{/profile}" method="post" th:object="${profile}">
+                                
+                                <div class="mb-4">
+                                    <h5 class="fw-bold mb-3">Personal Information</h5>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="firstName" class="form-label">First Name</label>
+                                            <input type="text" class="form-control" id="firstName" th:field="*{firstName}">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="lastName" class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" id="lastName" th:field="*{lastName}">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="age" class="form-label">Age</label>
+                                            <input type="number" class="form-control" id="age" th:field="*{age}" min="18" max="120">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="relationshipStatus" class="form-label">Relationship Status</label>
+                                            <select class="form-select" id="relationshipStatus" th:field="*{relationshipStatus}">
+                                                <option value="">Select status</option>
+                                                <option th:each="status : ${T(com.meetruly.core.constant.RelationshipStatus).values()}"
+                                                        th:value="${status}" th:text="${status.displayName}">Single</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                
+                                <div class="mb-4">
+                                    <h5 class="fw-bold mb-3">Physical Attributes</h5>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="eyeColor" class="form-label">Eye Color</label>
+                                            <select class="form-select" id="eyeColor" th:field="*{eyeColor}">
+                                                <option value="">Select eye color</option>
+                                                <option th:each="color : ${T(com.meetruly.core.constant.EyeColor).values()}"
+                                                        th:value="${color}" th:text="${color.displayName}">Brown</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="hairColor" class="form-label">Hair Color</label>
+                                            <select class="form-select" id="hairColor" th:field="*{hairColor}">
+                                                <option value="">Select hair color</option>
+                                                <option th:each="color : ${T(com.meetruly.core.constant.HairColor).values()}"
+                                                        th:value="${color}" th:text="${color.displayName}">Brown</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="height" class="form-label">Height (cm)</label>
+                                            <input type="number" class="form-control" id="height" th:field="*{height}" min="120" max="220">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="weight" class="form-label">Weight (kg)</label>
+                                            <input type="number" class="form-control" id="weight" th:field="*{weight}" min="30" max="200">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                
+                                <div class="mb-4">
+                                    <h5 class="fw-bold mb-3">Location</h5>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="country" class="form-label">Country</label>
+                                            <select class="form-select" id="country" th:field="*{country}">
+                                                <option value="">Select country</option>
+                                                <option th:each="country : ${T(com.meetruly.core.constant.Country).values()}"
+                                                        th:value="${country}" th:text="${country.displayName}">Country</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="city" class="form-label">City</label>
+                                            <select class="form-select" id="city" th:field="*{city}">
+                                                <option value="">Select city</option>
+                                                <option th:each="city : ${T(com.meetruly.core.constant.City).values()}"
+                                                        th:value="${city}" th:text="${city.displayName}"
+                                                        th:data-country="${city.country}"
+                                                        th:class="${'city-option ' + city.country}">City</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                
+                                <div class="mb-4">
+                                    <h5 class="fw-bold mb-3">Interests & Preferences</h5>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Interests</label>
+                                        <div class="row">
+                                            <div th:each="interest : ${T(com.meetruly.core.constant.Interest).values()}" class="col-md-4 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                           th:field="*{interests}" th:value="${interest}"
+                                                           th:id="${'interest-' + interest}">
+                                                    <label class="form-check-label" th:for="${'interest-' + interest}"
+                                                           th:text="${interest.displayName}">Interest</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="relationshipType" class="form-label">What are you looking for?</label>
+                                        <select class="form-select" id="relationshipType" th:field="*{relationshipType}">
+                                            <option value="">Select relationship type</option>
+                                            <option th:each="type : ${T(com.meetruly.core.constant.RelationshipType).values()}"
+                                                    th:value="${type}" th:text="${type.displayName}">Relationship Type</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="partnerPreferences" class="form-label">Partner Preferences</label>
+                                        <textarea class="form-control" id="partnerPreferences" rows="4"
+                                                  th:field="*{partnerPreferences}" placeholder="Describe what you're looking for in a partner..."></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="text-end">
+                                    <button type="reset" class="btn btn-light">Reset</button>
+                                    <button type="submit" class="btn btn-primary">Save Profile</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="modal fade" id="uploadImageModal" tabindex="-1" aria-labelledby="uploadImageModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="uploadImageModalLabel">Upload Profile Picture</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form th:action="@{/profile/upload-image}" method="post" enctype="multipart/form-data" id="uploadImageForm">
+                            <div class="mb-3">
+                                <label for="imageFile" class="form-label">Select Image</label>
+                                <input class="form-control" type="file" id="imageFile" name="image" accept="image
+    .profile-img-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+
+    .profile-img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .profile-img-overlay {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .profile-img-container:hover .profile-img-overlay {
+        opacity: 1;
+    }
+
+    
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+    }
+
+    
+    .form-label {
+        font-weight: 500;
+    }
+
+    
+    .interest-tag {
+        display: inline-block;
+        background-color: rgba(255, 75, 139, 0.1);
+        color: var(--primary-color);
+        border-radius: 20px;
+        padding: 5px 12px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        font-size: 0.875rem;
+    }
+
+    
+    .image-preview-container {
+        max-height: 300px;
+        overflow: hidden;
+    }
+
+    #imagePreview {
+        max-height: 300px;
+        width: auto;
+    }
+</style>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const countrySelect = document.getElementById('country');
+        const citySelect = document.getElementById('city');
+
+        if (countrySelect && citySelect) {
+            
+            document.querySelectorAll('.city-option').forEach(option => {
+                option.style.display = 'none';
+            });
+
+            
+            countrySelect.addEventListener('change', function() {
+                const selectedCountry = this.value;
+
+                
+                document.querySelectorAll('.city-option').forEach(option => {
+                    option.style.display = 'none';
+                });
+
+                
+                if (selectedCountry) {
+                    document.querySelectorAll(`.city-option.${selectedCountry}`).forEach(option => {
+                        option.style.display = '';
+                    });
+                }
+
+                
+                citySelect.value = '';
+            });
+
+            
+            if (countrySelect.value) {
+                const event = new Event('change');
+                countrySelect.dispatchEvent(event);
+            }
+        }
+
+        
+        const imageInput = document.getElementById('imageFile');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewContainer = document.querySelector('.image-preview-container');
+
+        if (imageInput && imagePreview && previewContainer) {
+            imageInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        previewContainer.classList.remove('d-none');
+                    };
+
+                    reader.readAsDataURL(this.files[0]);
+                } else {
+                    previewContainer.classList.add('d-none');
+                }
+            });
+        }
+
+        
+        const uploadForm = document.getElementById('uploadImageForm');
+        const uploadButton = document.getElementById('uploadButton');
+
+        if (uploadForm && uploadButton) {
+            uploadForm.addEventListener('submit', function(e) {
+                
+                uploadButton.disabled = true;
+                uploadButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...';
+
+                
+                
+            });
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('My Subscription')}">
+    <title>My Subscription - Meetruly</title>
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('My Subscription', ~{::section})}" class="subscription-page">
+    <section>
+        
+        <div class="bg-gradient-primary text-white py-4 mb-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="fw-bold mb-1">My Subscription</h1>
+                        <p class="lead mb-0">Manage your subscription and view your usage limits</p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a th:href="@{/subscription/plans}" class="btn btn-light">
+                            <i class="bi bi-credit-card"></i> Browse Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container pb-4">
+            
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h2 class="card-title fw-bold mb-2">
+                                <span th:class="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).FREE ? 'badge bg-secondary' : (subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER ? 'badge bg-primary' : 'badge bg-warning text-dark')}"
+                                      th:text="${subscription.plan}">
+                                    FREE
+                                </span>
+                                <span class="ms-2">Plan</span>
+                            </h2>
+                            <p class="mb-1">
+                                <strong>Status:</strong>
+                                <span th:if="${subscription.expired}" class="text-danger">Expired</span>
+                                <span th:unless="${subscription.expired}" class="text-success">Active</span>
+                                <span th:if="${subscription.autoRenew}" class="badge bg-success ms-2">Auto-renew</span>
+                            </p>
+                            
+                            <p class="mb-1"><strong>Valid until:</strong> <span th:with="enUS=${#locale.forLanguageTag('en-US')}" th:text="${#temporals.format(subscription.endDate, 'dd MMMM yyyy', enUS)}">31 December 2025</span></p>
+                            <p th:if="${subscription.plan != T(com.meetruly.core.constant.SubscriptionPlan).FREE}">
+                                <strong>Auto-renewal:</strong>
+                                <span th:if="${subscription.autoRenew}">Enabled</span>
+                                <span th:unless="${subscription.autoRenew}">Disabled</span>
+
+                                
+                            <form th:action="@{/subscription/toggle-auto-renew}" method="post" class="d-inline ms-2">
+                                <input type="hidden" name="autoRenew" th:value="${!subscription.autoRenew}">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    <span th:if="${subscription.autoRenew}">Disable</span>
+                                    <span th:unless="${subscription.autoRenew}">Enable</span>
+                                </button>
+                            </form>
+                            </p>
+                        </div>
+
+                        <div class="col-md-6 text-md-end">
+                            <div th:if="${subscription.plan != T(com.meetruly.core.constant.SubscriptionPlan).FREE && !subscription.expired}" class="alert alert-info mb-3">
+                                Your subscription will <span th:if="${subscription.autoRenew}">automatically renew</span>
+                                <span th:unless="${subscription.autoRenew}">expire</span> on
+                                
+                                <strong th:with="enUS=${#locale.forLanguageTag('en-US')}" th:text="${#temporals.format(subscription.endDate, 'dd MMMM yyyy', enUS)}">31 December 2025</strong>.
+                            </div>
+
+                            <div th:if="${subscription.expired}" class="alert alert-warning mb-3">
+                                Your subscription has expired. Please renew to continue enjoying premium features.
+                            </div>
+
+                            <div class="btn-group">
+                                <a th:href="@{/subscription/plans}" class="btn btn-primary me-2">
+                                    Change Plan
+                                </a>
+                                <a th:href="@{/subscription/history}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-clock-history"></i> Subscription History
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="row mb-4">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header bg-white">
+                            <h3 class="h5 fw-bold mb-0">Daily Messages</h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="progress flex-grow-1 me-3" style="height: 10px;">
+                                    <div class="progress-bar bg-primary" role="progressbar"
+                                         th:style="'width: ' + ${subscription.dailyMessageLimit > 0 ? subscription.dailyMessageCount / subscription.dailyMessageLimit * 100 : 0} + '%'"
+                                         th:aria-valuenow="${subscription.dailyMessageCount}"
+                                         aria-valuemin="0" th:aria-valuemax="${subscription.dailyMessageLimit}"></div>
+                                </div>
+                                <span class="fw-bold">
+                                    <span th:text="${subscription.dailyMessageCount}">2</span>/<span th:text="${subscription.dailyMessageLimit}">10</span>
+                                </span>
+                            </div>
+                            <p class="text-muted small mb-0">Messages reset at midnight.</p>
+
+                            <div class="mt-4">
+                                <h4 class="h6 fw-bold mb-3">Messages by plan:</h4>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item px-0 d-flex justify-content-between">
+                                        <span>FREE</span>
+                                        <span th:text="${summary.freeDailyMessageLimit} + ' messages/day'">3 messages/day</span>
+                                    </li>
+                                    <li class="list-group-item px-0 d-flex justify-content-between">
+                                        <span>SILVER</span>
+                                        <span th:text="${summary.silverDailyMessageLimit} + ' messages/day'">15 messages/day</span>
+                                    </li>
+                                    <li class="list-group-item px-0 d-flex justify-content-between">
+                                        <span>GOLD</span>
+                                        <span th:if="${summary.goldDailyMessageLimit >= 999}">Unlimited messages</span>
+                                        <span th:unless="${summary.goldDailyMessageLimit >= 999}" th:text="${summary.goldDailyMessageLimit} + ' messages/day'">50 messages/day</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header bg-white">
+                            <h3 class="h5 fw-bold mb-0">Profile Views</h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="progress-bar bg-primary" role="progressbar"
+                                     th:style="'width: ' + ${subscription.profileViewsLimit > 0 ? subscription.profileViewsCount / subscription.profileViewsLimit * 100 : 0} + '%'"
+                                     th:aria-valuenow="${subscription.profileViewsCount}"
+                                     aria-valuemin="0" th:aria-valuemax="${subscription.profileViewsLimit}"></div>
+                                <span class="fw-bold">
+                                    <span th:text="${subscription.profileViewsCount}">5</span>/<span th:text="${subscription.profileViewsLimit}">20</span>
+                                </span>
+                            </div>
+                            <p class="text-muted small mb-0">Profile views reset at midnight.</p>
+
+                            <div class="mt-4">
+                                <h4 class="h6 fw-bold mb-3">Profile views by plan:</h4>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item px-0 d-flex justify-content-between">
+                                        <span>FREE</span>
+                                        <span th:text="${summary.freeProfileViewsLimit} + ' views/day'">10 views/day</span>
+                                    </li>
+                                    <li class="list-group-item px-0 d-flex justify-content-between">
+                                        <span>SILVER</span>
+                                        <span th:text="${summary.silverProfileViewsLimit} + ' views/day'">30 views/day</span>
+                                    </li>
+                                    <li class="list-group-item px-0 d-flex justify-content-between">
+                                        <span>GOLD</span>
+                                        <span th:if="${summary.goldProfileViewsLimit >= 999}">Unlimited views</span>
+                                        <span th:unless="${summary.goldProfileViewsLimit >= 999}" th:text="${summary.goldProfileViewsLimit} + ' views/day'">100 views/day</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h3 class="h5 fw-bold mb-0">Your Plan Features</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>View Profile Photos</td>
+                                <td>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).FREE}" class="text-warning">Limited</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER}" class="text-primary">Enhanced</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="text-success">Full Access</span>
+                                </td>
+                                <td>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).FREE}">All photos are blurred</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER}">Clear photos for limited profiles</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}">All photos are clear</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>See Who Liked You</td>
+                                <td>
+                                    <span th:if="${subscription.plan != T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="text-danger">Not Available</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="text-success">Available</span>
+                                </td>
+                                <td>
+                                    <span th:if="${subscription.plan != T(com.meetruly.core.constant.SubscriptionPlan).GOLD}">Upgrade to GOLD plan to see who liked you</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}">You can see who liked your profile</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>See Who Viewed Your Profile</td>
+                                <td>
+                                    <span th:if="${subscription.plan != T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="text-danger">Not Available</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="text-success">Available</span>
+                                </td>
+                                <td>
+                                    <span th:if="${subscription.plan != T(com.meetruly.core.constant.SubscriptionPlan).GOLD}">Upgrade to GOLD plan to see profile visitors</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}">You can see who viewed your profile</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Priority in Search Results</td>
+                                <td>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).FREE}" class="text-danger">Not Available</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER}" class="text-warning">Medium Priority</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}" class="text-success">High Priority</span>
+                                </td>
+                                <td>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).FREE}">Standard visibility in search results</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER}">Higher visibility in search results</span>
+                                    <span th:if="${subscription.plan == T(com.meetruly.core.constant.SubscriptionPlan).GOLD}">Top visibility in search results</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h3 class="h5 fw-bold mb-0">Recent Transactions</h3>
+                    <a th:href="@{/subscription/transactions}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Reference</th>
+                                <th>Plan</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${#lists.isEmpty(transactions)}">
+                                <td colspan="5" class="text-center py-3">No transactions found</td>
+                            </tr>
+                            <tr th:each="transaction : ${transactions}" th:if="${!#lists.isEmpty(transactions) && transactionStat.index < 5}">
+                                
+                                <td th:with="enUS=${#locale.forLanguageTag('en-US')}" th:text="${#temporals.format(transaction.createdAt, 'dd MMM yyyy', enUS)}">01 Jan 2025</td>
+                                <td th:text="${transaction.transactionReference}">TR-12345678</td>
+                                <td>
+                                        <span th:text="${transaction.plan}"
+                                              th:class="${transaction.plan == T(com.meetruly.core.constant.SubscriptionPlan).FREE ? 'badge bg-secondary' : (transaction.plan == T(com.meetruly.core.constant.SubscriptionPlan).SILVER ? 'badge bg-primary' : 'badge bg-warning text-dark')}">
+                                            SILVER
+                                        </span>
+                                </td>
+                                <td th:text="${transaction.amount + ' ' + transaction.currency}">9.99 EUR</td>
+                                <td>
+                                    <span th:if="${transaction.status.name() == 'COMPLETED'}" class="badge bg-success">Completed</span>
+                                    <span th:if="${transaction.status.name() == 'PENDING'}" class="badge bg-warning text-dark">Pending</span>
+                                    <span th:if="${transaction.status.name() == 'FAILED'}" class="badge bg-danger">Failed</span>
+                                    <span th:if="${transaction.status.name() == 'REFUNDED'}" class="badge bg-info">Refunded</span>
+                                    <span th:if="${transaction.status.name() == 'CANCELLED'}" class="badge bg-secondary">Cancelled</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<style>
+    .bg-gradient-primary {
+        background-image: linear-gradient(135deg, #6f42c1, #0d6efd);
+    }
+
+    .subscription-page .progress {
+        border-radius: 10px;
+        background-color: #e9ecef;
+    }
+
+    .subscription-page .card {
+        transition: transform 0.2s;
+    }
+
+    .subscription-page .card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+</body>
+</html>

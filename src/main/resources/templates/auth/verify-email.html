@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Verify Email')}">
+    <title>Verify Email - Meetruly</title>
+    
+    <link th:href="@{/css/auth.css}" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: main-layout('Verify Email', ~{::section})}">
+    <section>
+        <div class="auth-wrapper">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <img th:src="@{/images/logo.svg}" alt="Meetruly Logo" class="auth-logo">
+                        <h2>Verify Your Email</h2>
+                        <p>We've sent you a verification link to your email</p>
+                    </div>
+
+                    <div class="auth-body">
+                        <div class="verification-container">
+                            
+                            <div class="verification-icon">
+                                <i class="bi bi-envelope-check"></i>
+                            </div>
+
+                            
+                            <div class="mb-4">
+                                <h4>Check Your Inbox</h4>
+                                <p class="text-muted">We've sent a verification link to your email address. Please check your inbox and click the link to verify your email.</p>
+                            </div>
+
+                            
+                            <div th:if="${param.token != null && successMessage != null}" class="alert alert-success mb-4">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <span th:text="${successMessage}">Email verified successfully!</span>
+                            </div>
+
+                            
+                            <div th:if="${param.token != null && errorMessage != null}" class="alert alert-danger mb-4">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <span th:text="${errorMessage}">Email verification failed!</span>
+                            </div>
+
+                            
+                            <div class="verification-email-form">
+                                <p class="mb-4">Didn't receive the email? Check your spam folder or request a new verification link.</p>
+
+                                <form th:action="@{/auth/verify-email/resend}" method="post">
+                                    <div class="form-group mb-3">
+                                        <label for="email" class="form-label">Email Address</label>
+                                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email address" required>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary btn-block">Resend Verification Email</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="auth-footer">
+                        <p class="mb-0">Return to <a th:href="@{/auth/login}" class="text-primary fw-bold">Login</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</body>
+</html>

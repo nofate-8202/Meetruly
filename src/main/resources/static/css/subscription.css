@@ -1,0 +1,166 @@
+
+
+
+.subscription-area {
+    margin-bottom: 2rem;
+}
+
+
+.subscription-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px;
+    overflow: hidden;
+    border: none;
+}
+
+.subscription-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 3rem rgba(0,0,0,.175);
+}
+
+.subscription-card.current-plan {
+    border: 2px solid #0d6efd !important;
+}
+
+
+.plan-badge {
+    font-size: 0.8rem;
+    padding: 0.35em 0.65em;
+    border-radius: 20px;
+}
+
+
+.progress-bar-container {
+    height: 10px;
+    border-radius: 5px;
+    background-color: #e9ecef;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: #0d6efd;
+    border-radius: 5px;
+}
+
+
+.features-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.features-list li {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: flex-start;
+}
+
+.features-list li i {
+    margin-right: 0.75rem;
+    margin-top: 3px;
+}
+
+.features-list li .text-success {
+    color: #198754;
+}
+
+.features-list li .text-danger {
+    color: #dc3545;
+}
+
+
+.ribbon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 150px;
+    height: 150px;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.ribbon span {
+    position: absolute;
+    display: block;
+    width: 225px;
+    padding: 5px 0;
+    background-color: #ff6b6b;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-align: center;
+    transform: rotate(45deg);
+    top: 35px;
+    right: -55px;
+}
+
+
+.bg-gradient-primary {
+    background-image: linear-gradient(135deg, #6f42c1, #0d6efd);
+}
+
+.bg-gradient-gold {
+    background-image: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
+
+.subscription-timeline .timeline-item {
+    position: relative;
+    margin-bottom: 50px;
+    padding-left: 30px;
+}
+
+.subscription-timeline .timeline-item:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: -50px;
+    left: 15px;
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.subscription-timeline .timeline-badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+
+.payment-method-option label {
+    padding: 10px 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.payment-method-option input[type="radio"]:checked + label {
+    border-color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+
+.subscription-table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+
+@media (max-width: 768px) {
+    .subscription-timeline .timeline-panel {
+        margin-left: 10px;
+    }
+
+    .subscription-card {
+        margin-bottom: 1.5rem;
+    }
+}

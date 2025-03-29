@@ -429,38 +429,54 @@ public class UserServiceImpl implements UserService {
         int minAge = searchRequest.getMinAge() != null ? searchRequest.getMinAge() : 18;
         int maxAge = searchRequest.getMaxAge() != null ? searchRequest.getMaxAge() : 120;
 
-        Page<UserProfile> profilesPage;
+        List<User> users = userRepository.findByApproved(true);
+        List<User> filteredUsers = users.stream()
+                .filter(User::isEnabled)
+                .filter(user -> {
 
-        if (searchRequest.getGender() != null) {
-
-            profilesPage = profileRepository.findByGenderAndAgeBetween(
-                    searchRequest.getGender(),
-                    minAge,
-                    maxAge,
-                    pageable
-            );
-        } else {
-
-            profilesPage = profileRepository.findByAgeGreaterThanEqualAndAgeLessThanEqual(
-                    minAge,
-                    maxAge,
-                    pageable
-            );
-        }
-
-        List<UserProfile> filteredProfiles = profilesPage.getContent().stream()
-                .filter(profile -> isProfileMatchingCriteria(profile, searchRequest))
+                    return searchRequest.getGender() == null ||
+                            user.getGender() == searchRequest.getGender();
+                })
                 .toList();
 
-        List<ProfileCardDto> profileDtos = filteredProfiles.stream()
-                .map(this::convertProfileToCardDto)  // Използваме новия метод
-                .collect(Collectors.toList());
+        List<ProfileCardDto> profileDtos = new ArrayList<>();
+
+        for (User user : filteredUsers) {
+            Optional<UserProfile> profileOpt = profileRepository.findByUserId(user.getId());
+
+            if (profileOpt.isPresent()) {
+                UserProfile profile = profileOpt.get();
+
+                if (profile.getAge() != null &&
+                        (profile.getAge() < minAge || profile.getAge() > maxAge)) {
+                    continue;
+                }
+
+                if (isProfileMatchingCriteria(profile, searchRequest)) {
+                    profileDtos.add(convertProfileToCardDto(profile));
+                }
+            } else {
+
+                ProfileCardDto basicCard = new ProfileCardDto();
+                basicCard.setUserId(user.getId());
+                basicCard.setUsername(user.getUsername());
+                basicCard.setGender(user.getGender());
+                basicCard.setBlurredImage(false);
+                profileDtos.add(basicCard);
+            }
+        }
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), profileDtos.size());
+
+        List<ProfileCardDto> pageContent = start >= profileDtos.size() ?
+                Collections.emptyList() : profileDtos.subList(start, end);
 
         return SearchProfileResponse.builder()
-                .profiles(profileDtos)
-                .currentPage(profilesPage.getNumber())
-                .totalPages(profilesPage.getTotalPages())
-                .totalElements(profilesPage.getTotalElements())
+                .profiles(pageContent)
+                .currentPage(pageable.getPageNumber())
+                .totalPages((int) Math.ceil((double) profileDtos.size() / pageable.getPageSize()))
+                .totalElements((long) profileDtos.size())
                 .build();
     }
     private ProfileCardDto convertProfileToCardDto(UserProfile profile) {
@@ -483,36 +499,46 @@ public class UserServiceImpl implements UserService {
 
     private boolean isProfileMatchingCriteria(UserProfile profile, SearchProfileRequest request) {
 
-
-        if (!profile.getUser().isApproved() || !profile.getUser().isEnabled() || !profile.getUser().isProfileCompleted()) {
+        if (request.getEyeColor() != null &&
+                profile.getEyeColor() != null &&
+                profile.getEyeColor() != request.getEyeColor()) {
             return false;
         }
 
-        if (request.getEyeColor() != null && profile.getEyeColor() != request.getEyeColor()) {
+        if (request.getHairColor() != null &&
+                profile.getHairColor() != null &&
+                profile.getHairColor() != request.getHairColor()) {
             return false;
         }
 
-        if (request.getHairColor() != null && profile.getHairColor() != request.getHairColor()) {
+        if (request.getMinHeight() != null &&
+                profile.getHeight() != null &&
+                profile.getHeight() < request.getMinHeight()) {
             return false;
         }
 
-        if (request.getMinHeight() != null && (profile.getHeight() == null || profile.getHeight() < request.getMinHeight())) {
+        if (request.getMaxHeight() != null &&
+                profile.getHeight() != null &&
+                profile.getHeight() > request.getMaxHeight()) {
             return false;
         }
 
-        if (request.getMaxHeight() != null && (profile.getHeight() == null || profile.getHeight() > request.getMaxHeight())) {
+        if (request.getMinWeight() != null &&
+                profile.getWeight() != null &&
+                profile.getWeight() < request.getMinWeight()) {
             return false;
         }
 
-        if (request.getMinWeight() != null && (profile.getWeight() == null || profile.getWeight() < request.getMinWeight())) {
+        if (request.getMaxWeight() != null &&
+                profile.getWeight() != null &&
+                profile.getWeight() > request.getMaxWeight()) {
             return false;
         }
 
-        if (request.getMaxWeight() != null && (profile.getWeight() == null || profile.getWeight() > request.getMaxWeight())) {
-            return false;
-        }
-
-        if (request.getInterests() != null && !request.getInterests().isEmpty()) {
+        if (request.getInterests() != null &&
+                !request.getInterests().isEmpty() &&
+                profile.getInterests() != null &&
+                !profile.getInterests().isEmpty()) {
 
             boolean hasMatchingInterest = profile.getInterests().stream()
                     .anyMatch(request.getInterests()::contains);
@@ -522,19 +548,33 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        if (request.getRelationshipType() != null && profile.getRelationshipType() != request.getRelationshipType()) {
+        if (request.getRelationshipType() != null &&
+                profile.getRelationshipType() != null &&
+                profile.getRelationshipType() != request.getRelationshipType()) {
             return false;
         }
 
-        if (request.getRelationshipStatus() != null && profile.getRelationshipStatus() != request.getRelationshipStatus()) {
+        if (request.getRelationshipStatus() != null &&
+                profile.getRelationshipStatus() != null &&
+                profile.getRelationshipStatus() != request.getRelationshipStatus()) {
             return false;
         }
 
-        if (request.getCountry() != null && profile.getCountry() != request.getCountry()) {
+
+        if (request.getCountry() != null &&
+                profile.getCountry() != null &&
+                profile.getCountry() != request.getCountry()) {
             return false;
         }
 
-        return request.getCity() == null || profile.getCity() == request.getCity();
+        if (request.getCity() != null &&
+                profile.getCity() != null &&
+                profile.getCity() != request.getCity()) {
+            return false;
+        }
+
+        
+        return true;
     }
 
     @Override
