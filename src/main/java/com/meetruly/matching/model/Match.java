@@ -40,11 +40,12 @@ public class Match {
     @Column(nullable = false)
     private MatchType matchType;
 
-    @Column(nullable = false)
+    @Column(name = "user1_viewed")
     private boolean user1Viewed;
 
-    @Column(nullable = false)
+    @Column(name = "user2_viewed")
     private boolean user2Viewed;
+
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

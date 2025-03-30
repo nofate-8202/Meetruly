@@ -19,6 +19,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
 
 @Controller
@@ -36,29 +37,86 @@ public class HomeController {
 
         if (principal != null) {
             try {
-
+                // Зареждане на потребителя
                 String username = principal.getName();
-                User user = userService.getUserByUsername(username)
-                        .orElseThrow(() -> new MeetrulyException("User not found: " + username));
+                User user = null;
 
-                MatchingSummaryDto matchingSummary = matchingService.getMatchingSummary(user.getId());
+                try {
+                    user = userService.getUserByUsername(username)
+                            .orElse(null);
+
+                    if (user == null) {
+                        log.error("User not found: {}", username);
+                        model.addAttribute("errorMessage", "User not found. Please contact support.");
+                        return "home";
+                    }
+                } catch (Exception e) {
+                    log.error("Error retrieving user: {}", e.getMessage());
+                    model.addAttribute("errorMessage", "Error retrieving user data. Please try again later.");
+                    return "home";
+                }
+
+                // Зареждане на информация за съвпаденията
+                MatchingSummaryDto matchingSummary = null;
+                try {
+                    matchingSummary = matchingService.getMatchingSummary(user.getId());
+
+                    // Ако matchingSummary е null, създаваме празен обект
+                    if (matchingSummary == null) {
+                        matchingSummary = new MatchingSummaryDto();
+                        matchingSummary.setDailySuggestions(Collections.emptyList());
+                        matchingSummary.setTopLikedUsers(Collections.emptyList());
+                    }
+
+                    // Ако списъците са null, създаваме празни
+                    if (matchingSummary.getDailySuggestions() == null) {
+                        matchingSummary.setDailySuggestions(Collections.emptyList());
+                    }
+                    if (matchingSummary.getTopLikedUsers() == null) {
+                        matchingSummary.setTopLikedUsers(Collections.emptyList());
+                    }
+                } catch (Exception e) {
+                    log.error("Error retrieving matching summary: {}", e.getMessage());
+                    matchingSummary = new MatchingSummaryDto();
+                    matchingSummary.setDailySuggestions(Collections.emptyList());
+                    matchingSummary.setTopLikedUsers(Collections.emptyList());
+                }
                 model.addAttribute("matchingSummary", matchingSummary);
 
-                ChatSummaryDto chatSummary = chatService.getChatSummary(user.getId());
+                // Зареждане на информация за чат съобщенията
+                ChatSummaryDto chatSummary = null;
+                try {
+                    chatSummary = chatService.getChatSummary(user.getId());
+                    if (chatSummary == null) {
+                        chatSummary = new ChatSummaryDto(); // Създаваме празен обект ако е null
+                        chatSummary.setUnreadMessages(0); // Задаваме default стойност
+                    }
+                } catch (Exception e) {
+                    log.error("Error retrieving chat summary: {}", e.getMessage());
+                    chatSummary = new ChatSummaryDto();
+                    chatSummary.setUnreadMessages(0);
+                }
                 model.addAttribute("chatSummary", chatSummary);
 
-                SubscriptionSummaryDto subscriptionSummary = subscriptionService.getSubscriptionSummary(user.getId());
+                // Зареждане на информация за абонамента
+                SubscriptionSummaryDto subscriptionSummary = null;
+                SubscriptionDto currentSubscription = null;
+                try {
+                    subscriptionSummary = subscriptionService.getSubscriptionSummary(user.getId());
+                    currentSubscription = subscriptionService.getCurrentSubscription(user.getId());
+                } catch (Exception e) {
+                    log.error("Error retrieving subscription data: {}", e.getMessage());
+                }
                 model.addAttribute("subscriptionSummary", subscriptionSummary);
-
-                SubscriptionDto currentSubscription = subscriptionService.getCurrentSubscription(user.getId());
                 model.addAttribute("currentSubscription", currentSubscription);
 
+                // Добавяне на допълнителни атрибути на модела
                 model.addAttribute("unreadMessages", chatSummary.getUnreadMessages());
                 model.addAttribute("unviewedMatches", matchingSummary.getUnviewedMatches());
 
             } catch (Exception e) {
                 log.error("Error retrieving user data for home page", e);
-
+                model.addAttribute("errorMessage", "An error occurred while loading your data. Please try again later.");
             }
         }
 
