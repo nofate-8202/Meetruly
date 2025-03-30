@@ -74,7 +74,7 @@ public class User {
         this.accountNonLocked = true;
         this.emailVerified = false;
         this.profileCompleted = false;
-        this.approved = true;
+        this.approved = false;
 
     }
 
