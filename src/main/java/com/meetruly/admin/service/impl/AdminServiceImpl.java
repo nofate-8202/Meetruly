@@ -13,6 +13,7 @@ import com.meetruly.core.constant.ReportStatus;
 import com.meetruly.core.constant.SubscriptionPlan;
 import com.meetruly.core.constant.UserRole;
 import com.meetruly.core.exception.MeetrulyException;
+import com.meetruly.core.service.NotificationIntegrationService;
 import com.meetruly.matching.repository.LikeRepository;
 import com.meetruly.matching.repository.MatchRepository;
 import com.meetruly.matching.repository.ProfileViewRepository;
@@ -55,6 +56,7 @@ public class AdminServiceImpl implements AdminService {
     private final MatchRepository matchRepository;
     private final MessageRepository messageRepository;
     private final ProfileViewRepository profileViewRepository;
+    private final NotificationIntegrationService notificationService;
 
     @Override
     @Transactional
@@ -139,6 +141,18 @@ public class AdminServiceImpl implements AdminService {
 
         if (user.isApproved()) {
             throw new MeetrulyException("User is already approved");
+        }
+        try {
+             user = userRepository.findById(userId)
+                    .orElseThrow(() -> new MeetrulyException("User not found"));
+
+            notificationService.sendProfileApprovedNotification(
+                    user.getId(),
+                    user.getEmail(),
+                    user.getUsername()
+            );
+        } catch (Exception e) {
+            log.error("Error sending profile approval notification", e);
         }
 
         user.setApproved(true);
@@ -323,6 +337,23 @@ public class AdminServiceImpl implements AdminService {
         LocalDateTime endDate = null;
         if (!blockRequest.isPermanent()) {
             endDate = LocalDateTime.now().plusDays(blockRequest.getDurationDays());
+        }
+        try {
+            user = userRepository.findById(blockRequest.getUserId())
+                    .orElseThrow(() -> new MeetrulyException("User not found"));
+
+            String duration = blockRequest.isPermanent() ? "permanently" :
+                    "for " + blockRequest.getDurationDays() + " days";
+
+            notificationService.sendAccountBlockedNotification(
+                    user.getId(),
+                    user.getEmail(),
+                    user.getUsername(),
+                    duration,
+                    blockRequest.getReason()
+            );
+        } catch (Exception e) {
+            log.error("Error sending account blocked notification", e);
         }
 
         UserBlock block = UserBlock.builder()

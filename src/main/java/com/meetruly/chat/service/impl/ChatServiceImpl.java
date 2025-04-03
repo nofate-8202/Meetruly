@@ -9,6 +9,7 @@ import com.meetruly.chat.repository.MessageRepository;
 import com.meetruly.chat.repository.UserTypingStatusRepository;
 import com.meetruly.chat.service.ChatService;
 import com.meetruly.core.exception.MeetrulyException;
+import com.meetruly.core.service.NotificationIntegrationService;
 import com.meetruly.subscription.service.SubscriptionService;
 import com.meetruly.user.model.User;
 import com.meetruly.user.model.UserProfile;
@@ -41,6 +42,8 @@ public class ChatServiceImpl implements ChatService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final SubscriptionService subscriptionService;
+    private final NotificationIntegrationService notificationService;
+
 
     @Override
     @Transactional
@@ -145,6 +148,37 @@ public class ChatServiceImpl implements ChatService {
         Message savedMessage = messageRepository.save(message);
 
         subscriptionService.incrementMessageCount(senderId);
+
+        try {
+
+            String recipientName = recipient.getUsername();
+            Optional<UserProfile> recipientProfile = userProfileRepository.findByUserId(recipient.getId());
+            if (recipientProfile.isPresent() && recipientProfile.get().getFirstName() != null) {
+                recipientName = recipientProfile.get().getFirstName();
+            }
+
+            String senderName = sender.getUsername();
+            Optional<UserProfile> senderProfile = userProfileRepository.findByUserId(sender.getId());
+            if (senderProfile.isPresent() && senderProfile.get().getFirstName() != null) {
+                senderName = senderProfile.get().getFirstName();
+            }
+
+            String messagePreview = messageRequest.getContent();
+            if (messagePreview.length() > 50) {
+                messagePreview = messagePreview.substring(0, 47) + "...";
+            }
+
+            notificationService.sendNewMessageNotification(
+                    recipient.getId(),
+                    recipient.getEmail(),
+                    recipientName,
+                    sender.getId(),
+                    senderName,
+                    messagePreview
+            );
+        } catch (Exception e) {
+            log.error("Error sending message notification", e);
+        }
 
         return convertToMessageDto(savedMessage, senderId);
     }
