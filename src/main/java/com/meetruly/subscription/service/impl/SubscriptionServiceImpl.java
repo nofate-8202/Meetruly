@@ -87,7 +87,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Transactional
-     void deactivateExpiredSubscription(Subscription subscription) {
+    public void deactivateExpiredSubscription(Subscription subscription) {
         subscription.setActive(false);
         subscription.setUpdatedAt(LocalDateTime.now());
         subscriptionRepository.save(subscription);
@@ -204,7 +204,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Transactional
-     void processSubscriptionRenewal(UUID userId, SubscriptionPlan plan) {
+    public void processSubscriptionRenewal(UUID userId, SubscriptionPlan plan) {
 
         Transaction transaction = Transaction.builder()
                 .user(userRepository.findById(userId).orElseThrow())
@@ -225,7 +225,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     @Transactional
-    void switchToFreePlan(UUID userId) {
+    public void switchToFreePlan(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new MeetrulyException("User not found with id: " + userId));
 
